@@ -101,9 +101,6 @@
       <Compile Include="Utils\SoundUtils.cs" />
     </ItemGroup>
     <ItemGroup>
-        <Reference Include="0Harmony, Version=2.1.1.0, Culture=neutral, PublicKeyToken=null">
-        <HintPath>lib\0Harmony.dll</HintPath>
-      </Reference>
       <Reference Include="HavokWrapper, Version=0.1.1.0, Culture=neutral, PublicKeyToken=null">
         <HintPath>C:\SE\Arrakis\torch-server\DedicatedServer64\HavokWrapper.dll</HintPath>
       </Reference>
@@ -125,9 +122,6 @@
       </Reference>
       <Reference Include="PresentationCore" />
       <Reference Include="PresentationFramework" />
-      <Reference Include="Profiler">
-        <HintPath>lib\Profiler.dll</HintPath>
-      </Reference>
       <Reference Include="ProtoBuf.Net, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
         <HintPath>C:\SE\Arrakis\torch-server\DedicatedServer64\ProtoBuf.Net.dll</HintPath>
       </Reference>
