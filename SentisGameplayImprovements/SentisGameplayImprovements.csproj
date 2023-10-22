@@ -1,0 +1,253 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="15.0" DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+    <Import Project="$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props" Condition="Exists('$(MSBuildExtensionsPath)\$(MSBuildToolsVersion)\Microsoft.Common.props')" />
+    <PropertyGroup>
+        <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
+        <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
+        <ProjectGuid>{669A88DE-B622-4E5F-9BFA-AA6755444906}</ProjectGuid>
+        <OutputType>Library</OutputType>
+        <AppDesignerFolder>Properties</AppDesignerFolder>
+        <RootNamespace>SentisGameplayImprovements</RootNamespace>
+        <AssemblyName>SentisGameplayImprovements</AssemblyName>
+        <TargetFrameworkVersion>v4.8</TargetFrameworkVersion>
+        <FileAlignment>512</FileAlignment>
+        <LangVersion>latest</LangVersion>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU' ">
+        <PlatformTarget>AnyCPU</PlatformTarget>
+        <DebugSymbols>true</DebugSymbols>
+        <DebugType>full</DebugType>
+        <Optimize>false</Optimize>
+        <OutputPath>bin\Debug\</OutputPath>
+        <DefineConstants>DEBUG;TRACE</DefineConstants>
+        <ErrorReport>prompt</ErrorReport>
+        <WarningLevel>4</WarningLevel>
+    </PropertyGroup>
+    <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU' ">
+        <PlatformTarget>AnyCPU</PlatformTarget>
+        <DebugType>pdbonly</DebugType>
+        <Optimize>true</Optimize>
+        <OutputPath>bin\Release\</OutputPath>
+        <DefineConstants>TRACE</DefineConstants>
+        <ErrorReport>prompt</ErrorReport>
+        <WarningLevel>4</WarningLevel>
+    </PropertyGroup>
+    <ItemGroup>
+      <Compile Include="AllGridsActions\AllGridsProcessor.cs" />
+      <Compile Include="AllGridsActions\FallInVoxelDetector.cs" />
+      <Compile Include="AllGridsActions\GridAutoRenamer.cs" />
+      <Compile Include="AllGridsActions\NpcStationsPowerFix.cs" />
+      <Compile Include="AllGridsActions\OnlineReward.cs" />
+      <Compile Include="AllGridsActions\PvEGridChecker.cs" />
+      <Compile Include="Api\ShieldApi.cs" />
+      <Compile Include="Char\CharPatch.cs" />
+      <Compile Include="Commands\AdminCommands.cs" />
+      <Compile Include="Commands\PlayerCommands.cs" />
+      <Compile Include="Common\GridPositionBehavior.cs" />
+      <Compile Include="Config\MainConfig.cs" />
+      <Compile Include="ContractPricePatch.cs" />
+      <Compile Include="DamagePatch.cs" />
+      <Compile Include="Explosions\ExplosionsPatch.cs" />
+      <Compile Include="FixShip\FixShipLogic.cs" />
+      <Compile Include="FixShip\MessageType.cs" />
+      <Compile Include="GridSpawner\SpawnDelegate.cs" />
+      <Compile Include="GridSpawner\NPCSpawner.cs" />
+      <Compile Include="GUI\ConfigGUI.cs">
+        <DependentUpon>ConfigGUI.xaml</DependentUpon>
+      </Compile>
+      <Compile Include="GUI\DisplayTab.cs" />
+      <Compile Include="GUI\FilteredGrid.cs" />
+      <Compile Include="Limits\BuildBlockPatch.cs" />
+      <Compile Include="Limits\PcuLimiter.cs" />
+      <Compile Include="Limits\RaycastPatch.cs" />
+      <Compile Include="MissilePatch.cs" />
+      <Compile Include="NoScrapPatch.cs" />
+      <Compile Include="NPC\NpcPatches.cs" />
+      <Compile Include="Observer\EntitiesObserver.cs" />
+      <Compile Include="Observer\Utils\SearchEntitiesUtils.cs" />
+      <Compile Include="Production\RefineryPatchs.cs" />
+      <Compile Include="PVEZONE\DamageHandler.cs" />
+      <Compile Include="PVEZONE\MyDrillDamageFix.cs" />
+      <Compile Include="PVEZONE\PvECore.cs" />
+      <Compile Include="RemovePluginPatch.cs" />
+      <Compile Include="Rep\ReputationPatch.cs" />
+      <Compile Include="Shared\Action2.cs" />
+      <Compile Include="Shared\Ext2.cs" />
+      <Compile Include="Shared\SharpUtils.cs" />
+      <Compile Include="Shared\Voxels.cs" />
+      <Compile Include="SentisGameplayImprovementsPlugin.cs" />
+      <Compile Include="Shipyard\Communication.cs" />
+      <Compile Include="Shipyard\Dto\ConvertSyncRequest.cs" />
+      <Compile Include="Shipyard\Dto\FixShipRequest.cs" />
+      <Compile Include="Shipyard\Dto\GUI\GuiGridsRequest.cs" />
+      <Compile Include="Shipyard\Dto\GUI\GuiGridsResponse.cs" />
+      <Compile Include="Shipyard\Dto\MessageType.cs" />
+      <Compile Include="TurretPatchs.cs" />
+      <Compile Include="Tweaks\MedkitPatches.cs" />
+      <Compile Include="Utils\BlockUtils.cs" />
+      <Compile Include="Utils\ChatUtils.cs" />
+      <Compile Include="Utils\ConfigUtils.cs" />
+      <Compile Include="Utils\CreditsUtils.cs" />
+      <Compile Include="Utils\FactionUtils.cs" />
+      <Compile Include="Utils\GridUtils.cs" />
+      <Compile Include="Utils\IdentityUtils.cs" />
+      <Compile Include="Utils\InventoryUtils.cs" />
+      <Compile Include="Utils\NetworkUtils.cs" />
+      <Compile Include="Utils\NotificationUtils.cs" />
+      <Compile Include="Utils\PhysicsUtils.cs" />
+      <Compile Include="Utils\PlayerUtils.cs" />
+      <Compile Include="Utils\ProjectorUtils.cs" />
+      <Compile Include="Utils\ReflectionUtils.cs" />
+      <Compile Include="Utils\SoundUtils.cs" />
+    </ItemGroup>
+    <ItemGroup>
+        <Reference Include="0Harmony, Version=2.1.1.0, Culture=neutral, PublicKeyToken=null">
+        <HintPath>lib\0Harmony.dll</HintPath>
+      </Reference>
+      <Reference Include="HavokWrapper, Version=0.1.1.0, Culture=neutral, PublicKeyToken=null">
+        <HintPath>C:\SE\Arrakis\torch-server\DedicatedServer64\HavokWrapper.dll</HintPath>
+      </Reference>
+      <Reference Include="Microsoft.Bcl.AsyncInterfaces, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+        <HintPath>..\packages\Microsoft.Bcl.AsyncInterfaces.8.0.0-rc.2.23479.6\lib\net462\Microsoft.Bcl.AsyncInterfaces.dll</HintPath>
+      </Reference>
+      <Reference Include="Microsoft.CodeAnalysis, Version=2.9.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35">
+        <HintPath>C:\SE\Arrakis\torch-server\DedicatedServer64\Microsoft.CodeAnalysis.dll</HintPath>
+      </Reference>
+      <Reference Include="Microsoft.CodeAnalysis.CSharp, Version=2.9.0.0, Culture=neutral, PublicKeyToken=31bf3856ad364e35">
+        <HintPath>C:\SE\Arrakis\torch-server\DedicatedServer64\Microsoft.CodeAnalysis.CSharp.dll</HintPath>
+      </Reference>
+      <Reference Include="mscorlib" />
+      <Reference Include="Newtonsoft.Json">
+        <HintPath>..\..\..\..\..\SE\Arrakis\torch-server\DedicatedServer64\Newtonsoft.Json.dll</HintPath>
+      </Reference>
+      <Reference Include="NLog, Version=4.0.0.0, Culture=neutral, PublicKeyToken=5120e14c03d0593c">
+        <HintPath>C:\SE\Arrakis\torch-server\DedicatedServer64\NLog.dll</HintPath>
+      </Reference>
+      <Reference Include="PresentationCore" />
+      <Reference Include="PresentationFramework" />
+      <Reference Include="Profiler">
+        <HintPath>lib\Profiler.dll</HintPath>
+      </Reference>
+      <Reference Include="ProtoBuf.Net, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+        <HintPath>C:\SE\Arrakis\torch-server\DedicatedServer64\ProtoBuf.Net.dll</HintPath>
+      </Reference>
+      <Reference Include="ProtoBuf.Net.Core, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+        <HintPath>C:\SE\Arrakis\torch-server\DedicatedServer64\ProtoBuf.Net.Core.dll</HintPath>
+      </Reference>
+      <Reference Include="Sandbox.Common, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+        <HintPath>C:\SE\Arrakis\torch-server\DedicatedServer64\Sandbox.Common.dll</HintPath>
+      </Reference>
+      <Reference Include="Sandbox.Game, Version=0.1.1.0, Culture=neutral, PublicKeyToken=null">
+        <HintPath>C:\SE\Arrakis\torch-server\DedicatedServer64\Sandbox.Game.dll</HintPath>
+      </Reference>
+      <Reference Include="Sandbox.Graphics">
+        <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\SpaceEngineers\Bin64\Sandbox.Graphics.dll</HintPath>
+      </Reference>
+      <Reference Include="Sandbox.RenderDirect, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+        <HintPath>C:\SE\Arrakis\torch-server\DedicatedServer64\Sandbox.RenderDirect.dll</HintPath>
+      </Reference>
+      <Reference Include="SpaceEngineers.Game, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+        <HintPath>C:\SE\Arrakis\torch-server\DedicatedServer64\SpaceEngineers.Game.dll</HintPath>
+      </Reference>
+      <Reference Include="SpaceEngineers.ObjectBuilders, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+        <HintPath>C:\SE\Arrakis\torch-server\DedicatedServer64\SpaceEngineers.ObjectBuilders.dll</HintPath>
+      </Reference>
+      <Reference Include="System" />
+      <Reference Include="System.Buffers, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+        <HintPath>..\packages\System.Buffers.4.5.1\lib\net461\System.Buffers.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Collections.Immutable, Version=1.2.3.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+        <HintPath>C:\SE\Arrakis\torch-server\DedicatedServer64\System.Collections.Immutable.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Core" />
+      <Reference Include="System.Data" />
+      <Reference Include="System.Data.DataSetExtensions" />
+      <Reference Include="System.Memory, Version=4.0.1.2, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+        <HintPath>..\packages\System.Memory.4.5.5\lib\net461\System.Memory.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Numerics" />
+      <Reference Include="System.Numerics.Vectors, Version=4.1.4.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+        <HintPath>..\packages\System.Numerics.Vectors.4.5.0\lib\net46\System.Numerics.Vectors.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Runtime.CompilerServices.Unsafe, Version=6.0.0.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a, processorArchitecture=MSIL">
+        <HintPath>..\packages\System.Runtime.CompilerServices.Unsafe.6.0.0\lib\net461\System.Runtime.CompilerServices.Unsafe.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Text.Encodings.Web, Version=8.0.0.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+        <HintPath>..\packages\System.Text.Encodings.Web.8.0.0-rc.2.23479.6\lib\net462\System.Text.Encodings.Web.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Text.RegularExpressions, Version=4.1.1.0, Culture=neutral, PublicKeyToken=b03f5f7f11d50a3a">
+        <HintPath>C:\SE\Arrakis\torch-server\DedicatedServer64\System.Text.RegularExpressions.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Threading.Tasks.Extensions, Version=4.2.0.1, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+        <HintPath>..\packages\System.Threading.Tasks.Extensions.4.5.4\lib\net461\System.Threading.Tasks.Extensions.dll</HintPath>
+      </Reference>
+      <Reference Include="System.ValueTuple, Version=4.0.3.0, Culture=neutral, PublicKeyToken=cc7b13ffcd2ddd51, processorArchitecture=MSIL">
+        <HintPath>..\packages\System.ValueTuple.4.5.0\lib\net47\System.ValueTuple.dll</HintPath>
+      </Reference>
+      <Reference Include="System.Xaml" />
+      <Reference Include="System.Xml" />
+      <Reference Include="System.Xml.Linq" />
+      <Reference Include="Torch">
+        <HintPath>C:\SE\Arrakis\torch-server\Torch.dll</HintPath>
+      </Reference>
+      <Reference Include="Torch.API">
+        <HintPath>C:\SE\Arrakis\torch-server\Torch.API.dll</HintPath>
+      </Reference>
+      <Reference Include="VRage, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+        <HintPath>C:\SE\Arrakis\torch-server\DedicatedServer64\VRage.dll</HintPath>
+      </Reference>
+      <Reference Include="VRage.Game, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+        <HintPath>C:\SE\Arrakis\torch-server\DedicatedServer64\VRage.Game.dll</HintPath>
+      </Reference>
+      <Reference Include="VRage.Library, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+        <HintPath>C:\SE\Arrakis\torch-server\DedicatedServer64\VRage.Library.dll</HintPath>
+      </Reference>
+      <Reference Include="VRage.Math">
+        <HintPath>C:\SE\Arrakis\torch-server\DedicatedServer64\VRage.Math.dll</HintPath>
+      </Reference>
+      <Reference Include="VRage.Network">
+        <HintPath>C:\SE\Arrakis\torch-server\DedicatedServer64\VRage.Network.dll</HintPath>
+      </Reference>
+      <Reference Include="VRage.Platform.Windows">
+        <HintPath>C:\SE\Arrakis\torch-server\DedicatedServer64\VRage.Platform.Windows.dll</HintPath>
+      </Reference>
+      <Reference Include="VRage.RemoteClient.Core">
+        <HintPath>C:\SE\Arrakis\torch-server\DedicatedServer64\VRage.RemoteClient.Core.dll</HintPath>
+      </Reference>
+      <Reference Include="VRage.Render">
+        <HintPath>C:\SE\Arrakis\torch-server\DedicatedServer64\VRage.Render.dll</HintPath>
+      </Reference>
+      <Reference Include="VRage.Render11">
+        <HintPath>C:\SE\Arrakis\torch-server\DedicatedServer64\VRage.Render11.dll</HintPath>
+      </Reference>
+      <Reference Include="VRage.Scripting, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
+        <HintPath>C:\SE\Arrakis\torch-server\DedicatedServer64\VRage.Scripting.dll</HintPath>
+      </Reference>
+      <Reference Include="WindowsBase" />
+    </ItemGroup>
+    <ItemGroup>
+      <Content Include="manifest.xml" />
+    </ItemGroup>
+    <ItemGroup>
+        <Page Include="GUI\ConfigGUI.xaml">
+            <Generator>MSBuild:Compile</Generator>
+            <SubType>Designer</SubType>
+        </Page>
+        <Page Include="GUI\FilteredGrid.xaml">
+            <Generator>MSBuild:Compile</Generator>
+            <SubType>Designer</SubType>
+        </Page>
+    </ItemGroup>
+    <ItemGroup>
+      <None Include="App.config" />
+      <None Include="packages.config" />
+    </ItemGroup>
+    <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
+    <!-- To modify your build process, add your task inside one of the targets below and uncomment it. 
+         Other similar extension points exist, see Microsoft.Common.targets.
+    <Target Name="BeforeBuild">
+    </Target>
+    <Target Name="AfterBuild">
+    </Target>
+    -->
+</Project>
