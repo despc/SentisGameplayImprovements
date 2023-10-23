@@ -91,7 +91,7 @@ namespace SentisGameplayImprovements
         {
             try
             {
-                await Task.Delay(90000);
+                await Task.Delay(120000);
                 SApi.Load();
             }
             catch (Exception e)

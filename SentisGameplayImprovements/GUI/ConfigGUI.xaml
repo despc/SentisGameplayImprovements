@@ -7,10 +7,6 @@
              mc:Ignorable="d"
              d:DesignHeight="450" d:DesignWidth="800">
 	<StackPanel Orientation="Vertical">
-		<StackPanel Orientation="Horizontal" Margin="3,3,3,20">
-			<TextBlock Text="Adventures Info:" />
-			<TextBlock Name="AdventuresInfo" Margin="3,0,0,0" Width="Auto" Text="Adventures Info will be here" FontWeight="Bold" />
-		</StackPanel>
 		<gui:FilteredGrid x:Name="MainFilteredGrid" />
 	</StackPanel>
 </UserControl>
