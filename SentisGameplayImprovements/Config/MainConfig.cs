@@ -68,6 +68,9 @@ namespace SentisGameplayImprovements
         private string _pveZonePos = "-73641.29:-623775.25:-1089014.23";
         private int _pveZoneRadius = 100000;
         
+        // Factions&Reputations
+        private bool _spawnsGuardsForAttackedFaction = false;
+        
         [DisplayTab(Name = "Online Reward Enabled", GroupName = "Online Reward", Tab = "Online Reward", Order = 0, Description = "Online Reward Enabled")]
         public bool OnlineRewardEnabled
         {
@@ -273,6 +276,14 @@ namespace SentisGameplayImprovements
         {
             get => _disableTurretUpdate;
             set => SetValue(ref _disableTurretUpdate, value);
+        }
+          
+        // Factions&Reputations
+        [DisplayTab(Name = "Spawns guards for attacked faction", GroupName = "Factions&Reputations", Tab = "Factions&Reputations", Order = 0, Description = "Spawns guards for attacked faction")]
+        public bool SpawnsGuardsForAttackedFaction
+        {
+            get => _spawnsGuardsForAttackedFaction;
+            set => SetValue(ref _spawnsGuardsForAttackedFaction, value);
         }
     }
 }

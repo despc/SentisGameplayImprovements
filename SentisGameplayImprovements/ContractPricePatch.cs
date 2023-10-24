@@ -1,10 +1,8 @@
 ﻿using System;
 using System.Reflection;
 using NLog;
-using Sandbox.Game.Contracts;
 using Sandbox.Game.World.Generator;
 using Torch.Managers.PatchManager;
-using VRage.Game.ObjectBuilders.Components.Contracts;
 
 namespace SentisGameplayImprovements
 {
@@ -47,13 +45,6 @@ namespace SentisGameplayImprovements
             ctx.GetPattern(MethodGetMoneyRewardForRepairContract).Suffixes.Add(
                 typeof(ContractPricePatch).GetMethod(nameof(PatchGetMoneyRewardForRepairContract),
                     BindingFlags.Static | BindingFlags.Instance | BindingFlags.NonPublic));
-
-            var MethodMyContractFindInit = typeof(MyContractFind).GetMethod(
-                nameof(MyContractFind.Init), BindingFlags.Instance | BindingFlags.Public);
-
-            ctx.GetPattern(MethodMyContractFindInit).Prefixes.Add(
-                typeof(ContractPricePatch).GetMethod(nameof(PatchMyContractFindInit),
-                    BindingFlags.Static | BindingFlags.Instance | BindingFlags.NonPublic));
         }
 
         private static void PatchGetMoneyRewardForAcquisitionContract(ref long __result, long baseRew, int amount)
@@ -87,10 +78,15 @@ namespace SentisGameplayImprovements
         {
             try
             {
+                var configContractHaulingtMultiplier = SentisGameplayImprovementsPlugin.Config.ContractHaulingtMultiplier;
+                if (Math.Abs(configContractHaulingtMultiplier - 1) < 0.1)
+                {
+                    return;
+                }
                 double num1 = distance / JUMP_DRIVE_DISTANCE;
                 double num2 = num1 * (uraniumPrice * (double) AMOUNT_URANIUM_TO_RECHARGE);
                 __result = (long) ((baseRew + baseRew * num1 + num2) *
-                                   SentisGameplayImprovementsPlugin.Config.ContractHaulingtMultiplier);
+                                   configContractHaulingtMultiplier);
             }
             catch (Exception e)
             {
@@ -105,30 +101,18 @@ namespace SentisGameplayImprovements
         {
             try
             {
+                var configContractRepairMultiplier = SentisGameplayImprovementsPlugin.Config.ContractRepairMultiplier;
+                if (Math.Abs(configContractRepairMultiplier - 1) < 0.1)
+                {
+                    return;
+                }
                 __result = (long) ((baseRew * Math.Pow(2.0, Math.Log10(gridDistance)) +
                                     (long) (gridPriceToRewardcoef * (double) gridPrice)) *
-                                   SentisGameplayImprovementsPlugin.Config.ContractRepairMultiplier);
+                                   configContractRepairMultiplier);
             }
             catch (Exception e)
             {
                 Log.Error("Exception in time PatchGetMoneyRewardForHaulingContract", e);
-            }
-        }
-        
-        private static void PatchMyContractFindInit(ref MyObjectBuilder_Contract ob)
-        {
-            try
-            {
-                var rewardMoney = (long) (ob.RewardMoney * SentisGameplayImprovementsPlugin.Config.ContractFindMultiplier);
-                if (rewardMoney > 10000000)
-                {
-                    rewardMoney = _random.Next(7000000, 10000000);
-                }
-                ob.RewardMoney = rewardMoney;
-            }
-            catch (Exception e)
-            {
-                Log.Error("Exception in time PatchMyContractFindInit", e);
             }
         }
     }

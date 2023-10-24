@@ -49,6 +49,27 @@ namespace SentisGameplayImprovements
                 var AtreidesFaction = MySession.Static.Factions.TryGetFactionByTag("ATRD");
 
                 MyFaction attackedFaction = (MyFaction)__instance.TryGetPlayerFaction(attackedIdentityId);
+                
+                
+                try
+                {
+                    if (SentisGameplayImprovementsPlugin.Config.SpawnsGuardsForAttackedFaction)
+                    {
+                        var currentRep = MyAPIGateway.Session.Factions.GetReputationBetweenPlayerAndFaction(
+                            playerIdentityId,
+                            attackedFaction.FactionId);
+                        if (currentRep <= -1498)
+                        {
+                            return;
+                        }
+                        SpawnGuards(playerIdentityId, attackedFaction, currentRep);
+                    }
+                }
+                catch (Exception e)
+                {
+                    Log.Error(e, "Spawn guard exception");
+                }
+                
                 if (attackedFaction == null && playerFaction1 != null)
                 {
                     int reputationDamageDelta = GetReputationDamageDelta(repDamageType, __instance, true);
@@ -61,21 +82,6 @@ namespace SentisGameplayImprovements
                         return;
                     if (AtreidesFaction != null && HarkonnenFaction != null)
                     {
-                        try
-                        {
-                            var currentRep = MyAPIGateway.Session.Factions.GetReputationBetweenPlayerAndFaction(
-                                playerIdentityId,
-                                attackedFaction.FactionId);
-                            if (currentRep <= -1498)
-                            {
-                                return;
-                            }
-                            SpawnGuards(playerIdentityId, attackedFaction, currentRep);
-                        }
-                        catch (Exception e)
-                        {
-                            Log.Error(e, "Spawn guard exception");
-                        }
                         if (attackedFaction.FactionId == AtreidesFaction.FactionId)
                         {
                             int reputationDamageDeltaAtr = GetReputationDamageDelta(repDamageType, __instance, false);
