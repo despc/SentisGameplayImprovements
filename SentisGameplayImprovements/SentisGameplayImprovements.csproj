@@ -41,6 +41,7 @@
       <Compile Include="AllGridsActions\PvEGridChecker.cs" />
       <Compile Include="Api\ShieldApi.cs" />
       <Compile Include="Char\CharPatch.cs" />
+      <Compile Include="Cleanup\CleanupPatch.cs" />
       <Compile Include="Commands\AdminCommands.cs" />
       <Compile Include="Commands\PlayerCommands.cs" />
       <Compile Include="Common\GridPositionBehavior.cs" />

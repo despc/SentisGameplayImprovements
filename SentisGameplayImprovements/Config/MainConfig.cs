@@ -98,7 +98,6 @@ namespace SentisGameplayImprovements
         [DisplayTab(Name = "PvE Zone Radius", GroupName = "PvE Zone", Tab = "PvE Zone", Order = 3, Description = "PvE Zone Radius")]
         public int PveZoneRadius { get => _pveZoneRadius; set => SetValue(ref _pveZoneRadius, value); }
         
-        
         [DisplayTab(Name = "Reward for online", GroupName = "Online Reward", Tab = "Online Reward", Order = 1, Description = "Reward for online")]
         public String OnlineReward { get => _onlineReward; set => SetValue(ref _onlineReward, value); }
         
@@ -112,9 +111,6 @@ namespace SentisGameplayImprovements
         public String IgnoreCleanupSubtypes { get => _ignoreCleanupSubtypes; set => SetValue(ref _ignoreCleanupSubtypes, value); }
 
         [DisplayTab(Name = "Path to Garage", GroupName = "Other", Tab = "Other", Order = 0, Description = "Path to Garage")]
-        public String PathToGarage { get => _pathToGarage; set => SetValue(ref _pathToGarage, value); }
-        
-        [DisplayTab(Name = "Path to Grids Blueprints", GroupName = "NPC", Tab = "NPC", Order = 0, Description = "Path to Grids Blueprints")]
         public String PathToGrids { get => _pathToGrids; set => SetValue(ref _pathToGrids, value); }
         
         [DisplayTab(Name = "Guardians NPC names", GroupName = "NPC", Tab = "NPC", Order = 0, Description = "Guardians NPC names")]
@@ -146,12 +142,6 @@ namespace SentisGameplayImprovements
         {
             get => _contractRepairMultiplier;
             set => SetValue(ref _contractRepairMultiplier, value);
-        }
-        [DisplayTab(Name = "Contract find multiplier", GroupName = "Contracts", Tab = "Contracts", Order = 0, Description = "Contract find reward multiplier")]
-        public double ContractFindMultiplier
-        {
-            get => _contractFindMultiplier;
-            set => SetValue(ref _contractFindMultiplier, value);
         }
 
         [DisplayTab(Name = "Enabled PCU Limiter", GroupName = "PCU limiter", Tab = "PCU limiter", Order = 0, Description = "Enable PCU Limiter")]
