@@ -27,7 +27,14 @@ namespace SentisGameplayImprovements
             MyCubeGrid __instance,
             HashSet<MyCubeGrid.MyBlockLocation> locations)
         {
-            //TODO: Добавить проверку рукой ставится или наниткой/сварщиком и с шансом 90% скипать нанитку/сварщик
+            Task.Run(() =>
+            {
+                if (__instance != null)
+                {
+                    CheckBeacon(__instance);
+                }
+                
+            });
             if (!SentisGameplayImprovementsPlugin.Config.EnabledPcuLimiter)
                 return true;
             if (__instance == null)
@@ -67,10 +74,6 @@ namespace SentisGameplayImprovements
                 {
                     PcuLimiter.SendLimitMessage(identityId, pcu, maxPcu, __instance.DisplayName);
                 }
-            
-                // maxPcu = enemyAround ? maxPcu : maxPcu + 5000;
-
-                CheckBeacon(__instance);
             });
             
             return true;
@@ -98,19 +101,8 @@ namespace SentisGameplayImprovements
                 return;
             }
 
-            foreach (var gridBigOwner in grid.BigOwners)
-            {
-                MyVisualScriptLogicProvider.ShowNotification("На постройке " + grid.DisplayName + " не установлен маяк",
-                    5000, "Red",
-                    gridBigOwner);
-                MyVisualScriptLogicProvider.ShowNotification("она будет удалена при следующей очистке", 5000, "Red",
-                    gridBigOwner);
-                MyVisualScriptLogicProvider.ShowNotification("There is no beacon on the structure " + grid.DisplayName,
-                    5000, "Red",
-                    gridBigOwner);
-                MyVisualScriptLogicProvider.ShowNotification("it will be removed on next cleanup", 5000, "Red",
-                    gridBigOwner);
-            }
+            NotificationUtils.NotifyAllPlayersAround(grid.PositionComp.GetPosition(), 50, "На постройке " + grid.DisplayName + " не установлен маяк");
+            NotificationUtils.NotifyAllPlayersAround(grid.PositionComp.GetPosition(), 50, "она будет удалена при следующей очистке");
         }
     }
 }
