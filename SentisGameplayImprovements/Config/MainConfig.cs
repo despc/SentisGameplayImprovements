@@ -12,7 +12,6 @@ namespace SentisGameplayImprovements
         private double _contractAcquisitionMultiplier = 30; //Доставка
         private double _contractHaulingtMultiplier = 10; //Перевозка
         private double _contractRepairMultiplier = 10;
-        private double _contractFindMultiplier = 25;
         
         //PCU limiter
         private bool _enabledPcuLimiter = true;
@@ -29,8 +28,6 @@ namespace SentisGameplayImprovements
         private int _guardDistanceSpawn = 300;
         
         //other
-        private String _pathToAsters = "C:\\Asteroids";
-        private String _pathToGarage = "D:\\torch-server\\GARAGE";
         private String _ignoreCleanupSubtypes = "Cargo";
         private String _overrideModIds = "";
         
@@ -40,9 +37,6 @@ namespace SentisGameplayImprovements
         private bool _autoRestoreFromVoxel = false;
         private bool _disableNoOwner = false;
         private bool _disableTurretUpdate = false;
-        private bool _enableOnlyEarthSpawn = false;
-        private int _noDamageFromVoxelsBeforeSpeed = 30;
-        private bool _noDamageFromVoxelsIfNobodyNear = true;
         private int _minimumMassForKineticDamage = 5000;
         private int _raycastLimit = -1;
         
@@ -70,6 +64,18 @@ namespace SentisGameplayImprovements
         
         // Factions&Reputations
         private bool _spawnsGuardsForAttackedFaction = false;
+        
+        // Voxels
+        private bool _damageVoxelsFromExplosions = true;
+        private int _noDamageFromVoxelsBeforeSpeed = 30;
+        private bool _noDamageFromVoxelsIfNobodyNear = true;
+        
+        // Protection from assholes
+        private bool _disableArtificialMass = false;
+        private bool _disableDetachRotorFromTimer = false;
+        private bool _disableLockLandingGearOnEnemyShips = false;
+        private bool _disableLockLandingGearOnNPCShips = false;
+        private bool _disableBuildBlockOnNPC = false;
         
         [DisplayTab(Name = "Online Reward Enabled", GroupName = "Online Reward", Tab = "Online Reward", Order = 0, Description = "Online Reward Enabled")]
         public bool OnlineRewardEnabled
@@ -193,14 +199,14 @@ namespace SentisGameplayImprovements
             set => SetValue(ref _raycastLimit, value);
         }
         
-        [DisplayTab(Name = "No damage from voxels before speed", GroupName = "Tweaks", Tab = "Tweaks", Order = 0, Description = "No damage from voxels before speed")]
+        [DisplayTab(Name = "No damage from voxels before speed", GroupName = "Voxels", Tab = "Voxels", Order = 0, Description = "No damage from voxels before speed")]
         public int NoDamageFromVoxelsBeforeSpeed
         {
             get => _noDamageFromVoxelsBeforeSpeed;
             set => SetValue(ref _noDamageFromVoxelsBeforeSpeed, value);
         }
         
-        [DisplayTab(Name = "No Damage From Voxels If Nobody Near", GroupName = "Tweaks", Tab = "Tweaks", Order = 0, Description = "No Damage From Voxels If Nobody Near")]
+        [DisplayTab(Name = "No Damage From Voxels If Nobody Near", GroupName = "Voxels", Tab = "Voxels", Order = 0, Description = "No Damage From Voxels If Nobody Near")]
         public bool NoDamageFromVoxelsIfNobodyNear
         {
             get => _noDamageFromVoxelsIfNobodyNear;
@@ -261,7 +267,7 @@ namespace SentisGameplayImprovements
         [DisplayTab(Name = "Acceleration to Damage", GroupName = "Explosions", Tab = "Explosions", Order = 0, Description = "Acceleration to Damage")]
         public int AccelerationToDamage { get => _accelerationToDamage; set => SetValue(ref _accelerationToDamage, value); }
 
-        [DisplayTab(Name = "Disable Turret Update", GroupName = "Performance", Tab = "Performance", Order = 0, Description = "Disable Turret Update if WeaponCore")]
+        [DisplayTab(Name = "Disable Vanilla Turret Update", GroupName = "Performance", Tab = "Performance", Order = 0, Description = "Disable Vanilla Turret Update if all turrets on WeaponCore")]
         public bool DisableTurretUpdate
         {
             get => _disableTurretUpdate;
@@ -275,5 +281,43 @@ namespace SentisGameplayImprovements
             get => _spawnsGuardsForAttackedFaction;
             set => SetValue(ref _spawnsGuardsForAttackedFaction, value);
         }
+        
+        // Protection from assholes
+        [DisplayTab(Name = "Disable artificial mass", GroupName = "Protection from assholes", Tab = "Protection from assholes", Order = 99, Description = "Disable artificial mass")]
+        public bool DisableArtificialMass
+        {
+            get => _disableArtificialMass;
+            set => SetValue(ref _disableArtificialMass, value);
+        }
+        
+        [DisplayTab(Name = "Disable lock landing gear on enemy", GroupName = "Protection from assholes", Tab = "Protection from assholes", Order = 99, Description = "Disable lock landing gear on enemy")]
+        public bool DisableLockLandingGearOnEnemyShips
+        {
+            get => _disableLockLandingGearOnEnemyShips;
+            set => SetValue(ref _disableLockLandingGearOnEnemyShips, value);
+        }
+        
+        [DisplayTab(Name = "Disable lock landing gear on NPC", GroupName = "Protection from assholes", Tab = "Protection from assholes", Order = 99, Description = "Disable lock landing gear on NPC")]
+        public bool DisableLockLandingGearOnNPCShips
+        {
+            get => _disableLockLandingGearOnNPCShips;
+            set => SetValue(ref _disableLockLandingGearOnNPCShips, value);
+        }
+
+        [DisplayTab(Name = "Disable build block on NPC", GroupName = "Protection from assholes", Tab = "Protection from assholes", Order = 99, Description = "Disable build block on NPC")]
+        public bool DisableBuildBlockOnNPC
+        {
+            get => _disableBuildBlockOnNPC;
+            set => SetValue(ref _disableBuildBlockOnNPC, value);
+        }
+        
+        // Protection from assholes
+        [DisplayTab(Name = "Damage voxels from explosions", GroupName = "Voxels", Tab = "Voxels", Order = 0, Description = "Damage voxels from explosions")]
+        public bool DamageVoxelsFromExplosions
+        {
+            get => _damageVoxelsFromExplosions;
+            set => SetValue(ref _damageVoxelsFromExplosions, value);
+        }
+        
     }
 }

@@ -3,7 +3,6 @@ using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
 using Sandbox.Definitions;
-using Sandbox.Game;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Cube;
 using Torch.Managers.PatchManager;
@@ -27,6 +26,9 @@ namespace SentisGameplayImprovements
             MyCubeGrid __instance,
             HashSet<MyCubeGrid.MyBlockLocation> locations)
         {
+            if (SentisGameplayImprovementsPlugin.Config.DisableBuildBlockOnNPC && __instance.IsNpcGrid())
+                return false;
+            
             Task.Run(() =>
             {
                 if (__instance != null)

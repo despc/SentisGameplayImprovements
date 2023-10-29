@@ -73,6 +73,18 @@ namespace SentisGameplayImprovements
             ctx.GetPattern(CalculateStoredExplosiveDamageMethod).Prefixes.Add(
                 typeof(MissilePatch).GetMethod(nameof(CalculateStoredExplosiveDamageMethodPatched),
                     BindingFlags.Static | BindingFlags.Instance | BindingFlags.NonPublic));
+            
+            //Подсмотрено в DePatch
+            ctx.Prefix(typeof(MyExplosionInfo), "get_AffectVoxels", typeof(MissilePatch), nameof(AffectVoxelsPatch));
+        }
+        
+        private static bool AffectVoxelsPatch()
+        {
+            if (!SentisGameplayImprovementsPlugin.Config.DamageVoxelsFromExplosions)
+            {
+                return false;
+            }
+            return true;
         }
 
         private static void GetBlocksInsideSpheres(MyCubeGrid grid,
@@ -294,6 +306,12 @@ namespace SentisGameplayImprovements
         {
             if ( !MySession.Static.EnableVoxelDestruction || !MySession.Static.HighSimulationQuality)
                 return;
+            
+            if (!SentisGameplayImprovementsPlugin.Config.DamageVoxelsFromExplosions)
+            {
+               return;
+            }
+            
             List<MyVoxelBase> voxelsTmp = new List<MyVoxelBase>();
             List<MyVoxelBase> voxelsToCutTmp = new List<MyVoxelBase>();
             MySession.Static.VoxelMaps.GetAllOverlappingWithSphere(ref sphere, voxelsTmp);

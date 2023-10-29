@@ -40,6 +40,8 @@
       <Compile Include="AllGridsActions\OnlineReward.cs" />
       <Compile Include="AllGridsActions\PvEGridChecker.cs" />
       <Compile Include="Api\ShieldApi.cs" />
+      <Compile Include="Assholes\LandingGearPatch.cs" />
+      <Compile Include="Assholes\MyMassBlockPatch.cs" />
       <Compile Include="Char\CharPatch.cs" />
       <Compile Include="Cleanup\CleanupPatch.cs" />
       <Compile Include="Commands\AdminCommands.cs" />
@@ -132,8 +134,8 @@
       <Reference Include="Sandbox.Common, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null">
         <HintPath>C:\SE\Arrakis\torch-server\DedicatedServer64\Sandbox.Common.dll</HintPath>
       </Reference>
-      <Reference Include="Sandbox.Game, Version=0.1.1.0, Culture=neutral, PublicKeyToken=null">
-        <HintPath>C:\SE\Arrakis\torch-server\DedicatedServer64\Sandbox.Game.dll</HintPath>
+      <Reference Include="Sandbox.Game">
+        <HintPath>..\..\..\..\..\SE\Arrakis\torch-server\DedicatedServer64\Sandbox.Game.dll</HintPath>
       </Reference>
       <Reference Include="Sandbox.Graphics">
         <HintPath>..\..\..\..\..\Program Files (x86)\Steam\steamapps\common\SpaceEngineers\Bin64\Sandbox.Graphics.dll</HintPath>
