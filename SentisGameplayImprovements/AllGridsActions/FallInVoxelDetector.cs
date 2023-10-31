@@ -61,6 +61,11 @@ namespace SentisGameplayImprovements.AllGridsActions
                     }
                 }
 
+                if (planet != null && Vector3D.Distance(planet.GetClosestSurfacePointGlobal(currentPosition), currentPosition) < 100)
+                {
+                    return;
+                }
+                
                 foreach (var g in grids)
                 {
                     g.Physics.AngularVelocity = Vector3.Zero;
