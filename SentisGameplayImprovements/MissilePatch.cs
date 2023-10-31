@@ -234,6 +234,16 @@ namespace SentisGameplayImprovements
             
             try
             {
+                HashSet<MyEntity> chars = entities.Where(entity => entity is MyCharacter).ToHashSet();
+
+                foreach (var character in chars)
+                {
+                    if (character is MyCharacter myCharacter && myCharacter.IsUsing is MyCockpit)
+                    {
+                        entities.Remove(character);
+                    }
+                }
+                
                 HashSet<MyEntity> entitiesSet = new HashSet<MyEntity>(entities);
                 var explosionSphere = m_explosionInfo.ExplosionSphere;
                 float damage = m_explosionInfo.Damage;
