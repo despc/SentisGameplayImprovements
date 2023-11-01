@@ -74,7 +74,7 @@ namespace SentisGameplayImprovements.AllGridsActions
 
                 var vec = (pos.Position - planet.PositionComp.WorldMatrix.Translation);
                 vec.Normalize();
-                currentPosition = pos.Position + vec * (aabb.Size.Max() + 10);
+                currentPosition = pos.Position + vec * aabb.Size.Max();
 
                 var m = grid.WorldMatrix;
                 m.Translation = currentPosition;
@@ -97,7 +97,7 @@ namespace SentisGameplayImprovements.AllGridsActions
 
             if (Voxels.IsGridInsideVoxel(grid))
             {
-                if (grid.Physics.LinearVelocity.Length() < 10)
+                if (grid.Physics.LinearVelocity.Length() < 25)
                 {
                     return;
                 }
