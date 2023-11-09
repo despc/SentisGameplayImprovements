@@ -34,6 +34,7 @@ namespace SentisGameplayImprovements
         //Tweaks
         private bool _autoRenameGrids = false;
         private bool _enableRammingForStatic = true;
+        private bool _allowPlayersUseConvertCommands = true;
         private bool _autoRestoreFromVoxel = false;
         private bool _disableNoOwner = false;
         private bool _disableTurretUpdate = false;
@@ -169,6 +170,13 @@ namespace SentisGameplayImprovements
         {
             get => _enableRammingForStatic;
             set => SetValue(ref _enableRammingForStatic, value);
+        }
+        
+        [DisplayTab(Name = "Allow Players Use Convert Commands", GroupName = "Tweaks", Tab = "Tweaks", Order = 0, Description = "Allow Players Use Convert Commands")]
+        public bool AllowPlayersUseConvertCommands
+        {
+            get => _allowPlayersUseConvertCommands;
+            set => SetValue(ref _allowPlayersUseConvertCommands, value);
         }
         
         [DisplayTab(Name = "Max static grid PCU", GroupName = "PCU limiter", Tab = "PCU limiter", Order = 0, Description = "Max static grid PCU")]

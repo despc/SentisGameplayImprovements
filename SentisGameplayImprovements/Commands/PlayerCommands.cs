@@ -143,6 +143,12 @@ namespace SentisGameplayImprovements
             try
             {
                 var player = Context.Player;
+                
+                if (!PlayerUtils.IsAdmin(player) && !SentisGameplayImprovementsPlugin.Config.AllowPlayersUseConvertCommands)
+                {
+                    Context?.Respond("This command only for admins");
+                    return;
+                }
                 if (player?.Character == null)
                     return;
 
@@ -202,6 +208,11 @@ namespace SentisGameplayImprovements
         public void ConvertToStatic(string gridName = "")
         {
             var player = Context.Player;
+            if (!PlayerUtils.IsAdmin(player) && !SentisGameplayImprovementsPlugin.Config.AllowPlayersUseConvertCommands)
+            {
+                Context?.Respond("This command only for admins");
+                return;
+            }
             if (player?.Character == null)
                 return;
             
@@ -268,6 +279,11 @@ namespace SentisGameplayImprovements
         public void ConvertToDynamic(string gridName = "")
         {
             var player = Context.Player;
+            if (!PlayerUtils.IsAdmin(player) && !SentisGameplayImprovementsPlugin.Config.AllowPlayersUseConvertCommands)
+            {
+                Context?.Respond("This command only for admins");
+                return;
+            }
             if (player?.Character == null)
                 return;
             
