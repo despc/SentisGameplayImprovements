@@ -1,7 +1,9 @@
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Threading.Tasks;
+using NLog.Fluent;
 using Sandbox.Definitions;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Cube;
@@ -27,7 +29,20 @@ namespace SentisGameplayImprovements
             HashSet<MyCubeGrid.MyBlockLocation> locations)
         {
             if (SentisGameplayImprovementsPlugin.Config.DisableBuildBlockOnNPC && __instance.IsNpcGrid())
-                return false;
+            {
+                try
+                {
+                    ulong steamId = MyEventContext.Current.Sender.Value;
+                    if (!PlayerUtils.IsAdmin(PlayerUtils.GetPlayer(steamId).IdentityId))
+                    {
+                        return false;
+                    }
+                }
+                catch (Exception e)
+                {
+                    SentisGameplayImprovementsPlugin.Log.Error(e, "Build block Exception ");
+                }
+            }
             
             Task.Run(() =>
             {

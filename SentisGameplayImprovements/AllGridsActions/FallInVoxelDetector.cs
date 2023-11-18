@@ -74,7 +74,7 @@ namespace SentisGameplayImprovements.AllGridsActions
 
                 var vec = (pos.Position - planet.PositionComp.WorldMatrix.Translation);
                 vec.Normalize();
-                currentPosition = pos.Position + vec * aabb.Size.Max();
+                currentPosition = pos.Position + vec * (aabb.Size.Max() + 5);
 
                 var m = grid.WorldMatrix;
                 m.Translation = currentPosition;
