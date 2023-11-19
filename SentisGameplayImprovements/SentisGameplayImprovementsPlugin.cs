@@ -11,6 +11,7 @@ using Sandbox.Game.GameSystems;
 using Sandbox.Game.World;
 using Sandbox.ModAPI;
 using SentisGameplayImprovements.AllGridsActions;
+using SentisGameplayImprovements.PveZone;
 using SOPlugin.GUI;
 using Torch;
 using Torch.API;
@@ -83,6 +84,7 @@ namespace SentisGameplayImprovements
                 if (newState != TorchSessionState.Loaded)
                     return;
                 _allGridsProcessor.OnLoaded();
+                PvECore.Init();
                 InitShieldApi();
             }
         }
