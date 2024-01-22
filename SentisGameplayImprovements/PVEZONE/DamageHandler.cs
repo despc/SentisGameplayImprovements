@@ -14,7 +14,7 @@ namespace SentisGameplayImprovements.PveZone
         public static void Init()
         {
             if (MyAPIGateway.Session != null)
-                MyAPIGateway.Session.DamageSystem.RegisterBeforeDamageHandler(0, ProcessDamage);
+                MyAPIGateway.Session.DamageSystem.RegisterBeforeDamageHandler(1, ProcessDamage);
         }
 
         private static void ProcessDamage(object target, ref MyDamageInformation info)

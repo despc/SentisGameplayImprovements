@@ -27,19 +27,6 @@ namespace SentisGameplayImprovements.AllGridsActions
                         PvECore.EntitiesInZone.Remove(grid.EntityId);
                 }
 
-                
-                // var owner = (grid.BigOwners.Count > 0) ? grid.BigOwners.FirstOrDefault() : 0L;
-                
-                // if (owner != 0L && MySession.Static.Players.IdentityIsNpc(owner))
-                // {
-                //     if (SentisGameplayImprovementsPlugin.Config.EnableDamageFromNPC)
-                //     {
-                //         if (PvECore.EntitiesInZone.Contains(grid.EntityId))
-                //             PvECore.EntitiesInZone.Remove(grid.EntityId);
-                //         return;
-                //     }
-                // }
-                
                 var insidePvEZone = PvECore.PveSphere.Contains(grid.PositionComp.GetPosition()) == ContainmentType.Contains;
 
                 if (!insidePvEZone)

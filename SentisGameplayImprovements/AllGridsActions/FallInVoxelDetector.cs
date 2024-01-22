@@ -97,7 +97,7 @@ namespace SentisGameplayImprovements.AllGridsActions
 
             if (Voxels.IsGridInsideVoxel(grid))
             {
-                if (grid.Physics.LinearVelocity.Length() < 25)
+                if (grid.BlocksCount < 5 || grid.Physics.LinearVelocity.Length() < 40)
                 {
                     return;
                 }

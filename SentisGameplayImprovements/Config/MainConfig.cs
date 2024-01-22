@@ -30,6 +30,7 @@ namespace SentisGameplayImprovements
         //other
         private String _ignoreCleanupSubtypes = "Cargo";
         private String _overrideModIds = "";
+        private int _disableAnyDamageAfterStartTime = 120;
         
         //Tweaks
         private bool _autoRenameGrids = false;
@@ -50,6 +51,7 @@ namespace SentisGameplayImprovements
         private float _projectileAmmoExplosionMultiplier = 0.1f;
         private float _missileAmmoExplosionMultiplier = 0.3f;
         private float _ammoExplosionRadius = 15f;
+        private int _warheadExplosionDelay = 30;
         
         //Online Reward
         private bool _onlineRewardEnabled = true;
@@ -251,6 +253,13 @@ namespace SentisGameplayImprovements
             set => SetValue(ref _autoRenameGrids, value);
         }
         
+        [DisplayTab(Name = "Disable any damage after start time(sec)", GroupName = "Tweaks", Tab = "Tweaks", Order = 0, Description = "Disable any damage after start time(sec)")]
+        public int DisableAnyDamageAfterStartTime
+        {
+            get => _disableAnyDamageAfterStartTime;
+            set => SetValue(ref _disableAnyDamageAfterStartTime, value);
+        }
+        
         
         [DisplayTab(Name = "Async explosion", GroupName = "Explosions", Tab = "Explosions", Order = 8, Description = "Async explosion")]
         public bool AsyncExplosion { get => _asyncExplosion; set => SetValue(ref _asyncExplosion, value); }
@@ -268,6 +277,9 @@ namespace SentisGameplayImprovements
         public float MissileAmmoExplosionMultiplier { get => _missileAmmoExplosionMultiplier; set => SetValue(ref _missileAmmoExplosionMultiplier, value); }
         [DisplayTab(Name = "Ammo Explosion Radius", GroupName = "Explosions", Tab = "Explosions", Order = 0, Description = "Ammo Explosion Radius")]
         public float AmmoExplosionRadius { get => _ammoExplosionRadius; set => SetValue(ref _ammoExplosionRadius, value); }
+                
+        [DisplayTab(Name = "Warhead Explosion Delay", GroupName = "Explosions", Tab = "Explosions", Order = 0, Description = "Warhead Explosion Delay")]
+        public int WarheadExplosionDelay { get => _warheadExplosionDelay; set => SetValue(ref _warheadExplosionDelay, value); }
         
         [DisplayTab(Name = "Warhead damage multiplier", GroupName = "Explosions", Tab = "Explosions", Order = 0, Description = "Warhead damage multiplier")]
         public float WarheadDamageMultiplier { get => _warheadDamageMultiplier; set => SetValue(ref _warheadDamageMultiplier, value); }

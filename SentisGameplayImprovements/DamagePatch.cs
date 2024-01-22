@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using Havok;
 using NLog;
+using Sandbox;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Cube;
 using Sandbox.ModAPI;
@@ -43,15 +44,22 @@ namespace SentisGameplayImprovements
 
         private static void DoProcessDamage(object target, ref MyDamageInformation damage)
         {
-            IMyCharacter character = target as IMyCharacter;
-            if (character != null)
+            if (MySandboxGame.Static.SimulationFrameCounter / 60 <
+                (ulong)SentisGameplayImprovementsPlugin.Config.DisableAnyDamageAfterStartTime)
             {
-                if (protectedChars.Contains(character.EntityId))
-                {
-                    damage.Amount = 0;
-                    return;
-                }
+                damage.Amount = 0;
+                damage.IsDeformation = false;
+                return;
             }
+            // IMyCharacter character = target as IMyCharacter;
+            // if (character != null)
+            // {
+            //     if (protectedChars.Contains(character.EntityId))
+            //     {
+            //         damage.Amount = 0;
+            //         return;
+            //     }
+            // }
         }
         public static void Patch(PatchContext ctx)
         {

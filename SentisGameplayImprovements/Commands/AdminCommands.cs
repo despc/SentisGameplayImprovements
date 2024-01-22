@@ -23,7 +23,7 @@ using VRageMath;
 
 namespace SentisGameplayImprovements
 {
-    [Category("so")]
+    [Category("sgi")]
     public class AdminCommands : CommandModule
     {
         public static readonly Logger Log = LogManager.GetCurrentClassLogger();

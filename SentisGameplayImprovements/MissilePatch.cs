@@ -729,8 +729,9 @@ namespace SentisGameplayImprovements
                         if (key.FatBlock != null)
                             amount *= 7f;
                         key.DoDamage(amount, MyDamageType.Explosion, true, null, attackerId: attackerId);
-                        if (!key.IsDestroyed)
-                            key.CubeGrid.ApplyDestructionDeformation(key, 1f, new MyHitInfo?(), attackerId);
+                        //Отключим урон от деформации и посмотрим что будет
+                        // if (!key.IsDestroyed)
+                        //     key.CubeGrid.ApplyDestructionDeformation(key, 1f, new MyHitInfo?(), attackerId);
                     }
 
                     foreach (MySlimBlock neighbour in key.Neighbours)
@@ -769,13 +770,32 @@ namespace SentisGameplayImprovements
                 }
 
                 __result = true;
-                bool m_marked = (bool) GetInstanceField(typeof(MyWarhead), __instance, "m_marked");
-                MyDamageInformation info = new MyDamageInformation(false, damage, damageType, attackerId);
-                if (!m_marked)
+                var maxDelay = SentisGameplayImprovementsPlugin.Config.WarheadExplosionDelay;
+                var explosionDelay = 10;
+                if (maxDelay > 10)
                 {
-                    InvokeInstanceMethod(typeof(MyWarhead), __instance, "MarkForExplosion", new Object[0]);
-                    InvokeInstanceMethod(typeof(MyWarhead), __instance, "ExplodeDelayed", new Object[] {500});
+                    explosionDelay = MyUtils.GetRandomInt(maxDelay / 2, maxDelay);
                 }
+                
+                MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                    {
+                        try
+                        {
+                            bool m_marked = (bool)GetInstanceField(typeof(MyWarhead), __instance, "m_marked");
+                            if (!m_marked)
+                            {
+                                InvokeInstanceMethod(typeof(MyWarhead), __instance, "MarkForExplosion", new Object[0]);
+                                InvokeInstanceMethod(typeof(MyWarhead), __instance, "ExplodeDelayed",
+                                    new Object[] { 500 });
+                            }
+                        }
+                        catch (Exception e)
+                        {
+                            Log.Error(e);
+                            throw;
+                        }
+                    },
+                    StartAt: MySession.Static.GameplayFrameCounter + explosionDelay);
             }
             catch (Exception e)
             {

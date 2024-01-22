@@ -15,7 +15,7 @@ namespace SentisGameplayImprovements.AllGridsActions
         private OnlineReward _onlineReward = new OnlineReward();
         private PvEGridChecker _pvEGridChecker = new PvEGridChecker();
         private NpcStationsPowerFix _npcStationsPowerFix = new NpcStationsPowerFix();
-        
+
         public static readonly Logger Log = LogManager.GetCurrentClassLogger();
         private int counter = 0;
 
@@ -49,6 +49,7 @@ namespace SentisGameplayImprovements.AllGridsActions
                         {
                             await Task.Run(() => _npcStationsPowerFix.RefillPowerStations());
                         }
+
                         await Task.Run(() =>
                         {
                             try
@@ -71,7 +72,7 @@ namespace SentisGameplayImprovements.AllGridsActions
             {
                 Log.Error("CheckLoop start Error", e);
             }
-        }        
+        }
 
         private void CheckAllGrids()
         {
@@ -85,7 +86,12 @@ namespace SentisGameplayImprovements.AllGridsActions
                     {
                         continue;
                     }
-                    SentisGameplayImprovementsPlugin._limiter.CheckGrid(grid);
+
+                    if (SentisGameplayImprovementsPlugin.Config.EnabledPcuLimiter)
+                    {
+                        SentisGameplayImprovementsPlugin._limiter.CheckGrid(grid);
+                    }
+
                     if (SentisGameplayImprovementsPlugin.Config.AutoRestoreFromVoxel)
                     {
                         FallInVoxelDetector.CheckAndSavePos(grid);
@@ -100,6 +106,7 @@ namespace SentisGameplayImprovements.AllGridsActions
                     {
                         CheckNobodyOwner(grid);
                     }
+
                     if (SentisGameplayImprovementsPlugin.Config.PvEZoneEnabled)
                     {
                         _pvEGridChecker.CheckGridIsPvE(grid);
@@ -110,7 +117,6 @@ namespace SentisGameplayImprovements.AllGridsActions
             {
                 Log.Error(e);
             }
-
         }
 
         private void CheckNobodyOwner(MyCubeGrid grid)

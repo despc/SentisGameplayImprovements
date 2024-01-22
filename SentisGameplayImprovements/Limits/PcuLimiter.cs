@@ -17,124 +17,15 @@ namespace SentisGameplayImprovements
     public class PcuLimiter
     {
         public static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        static HashSet<long> gridsOverlimit = new HashSet<long>();
-
-
+        
         public void CheckGrid(MyCubeGrid grid)
         {
             if (grid.IsStatic || IsLimitNotReached(grid)) return;
             MyAPIGateway.Utilities.InvokeOnGameThread(() => { LimitReached(grid); });
         }
 
-        private void MyCubeGridsOnBlockDestroyed(MyCubeGrid cube, MySlimBlock block)
-        {
-            if (!SentisGameplayImprovementsPlugin.Config.EnabledPcuLimiter || cube == null || block == null ||
-                block.FatBlock == null)
-                return;
-
-            if (gridsOverlimit.Contains(cube.EntityId))
-            {
-                if (IsLimitNotReached(cube))
-                {
-                    LimitNotReached(cube);
-                }
-            }
-        }
-
-        public void LimitNotReached(MyCubeGrid cube)
-        {
-            if (gridsOverlimit.Contains(cube.EntityId))
-            {
-                gridsOverlimit.Remove(cube.EntityId);
-            }
-
-            List<IMySlimBlock> blocks = GridUtils.GetBlocks<IMyFunctionalBlock>((IMyCubeGrid)cube);
-            foreach (var mySlimBlock in blocks)
-            {
-                if (mySlimBlock.FatBlock is MyReactor ||
-                    mySlimBlock.FatBlock is MyMedicalRoom ||
-                    mySlimBlock.FatBlock is MySurvivalKit ||
-                    mySlimBlock.FatBlock is MyProjectorBase ||
-                    mySlimBlock.FatBlock is MyShipConnector ||
-                    mySlimBlock.FatBlock is MySafeZoneBlock)
-                {
-                    continue;
-                }
-
-                try
-                {
-                    ((IMyFunctionalBlock)mySlimBlock.FatBlock).Enabled = true;
-                }
-                catch (Exception e)
-                {
-                    Log.Error("Set Enabled exception", e);
-                }
-            }
-
-
-            var subGrids = GridUtils.GetSubGrids((IMyCubeGrid)cube, SentisGameplayImprovementsPlugin.Config.IncludeConnectedGrids);
-            foreach (var myCubeGrid in subGrids)
-            {
-                if (gridsOverlimit.Contains(myCubeGrid.EntityId))
-                {
-                    gridsOverlimit.Remove(myCubeGrid.EntityId);
-                }
-
-                List<IMySlimBlock> subGridBlocks = GridUtils.GetBlocks<IMyFunctionalBlock>(myCubeGrid);
-                foreach (var mySlimBlock in subGridBlocks)
-                {
-                    if (noDisableBlock(mySlimBlock))
-                    {
-                        continue;
-                    }
-                }
-            }
-        }
-
-        private void MyCubeGrids_BlockBuilt(MyCubeGrid cube, MySlimBlock block)
-        {
-            if (!SentisGameplayImprovementsPlugin.Config.EnabledPcuLimiter || cube == null || block == null ||
-                block.FatBlock == null)
-                return;
-            try
-            {
-                if (block.FatBlock.IsFunctional)
-                {
-                    if (IsLimitNotReached(cube))
-                        return;
-                    LimitReached(cube);
-                }
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex);
-            }
-        }
-
-        private void MyCubeGrids_BlockFunctional(MyCubeGrid cube, MySlimBlock block, bool b)
-        {
-            if (!SentisGameplayImprovementsPlugin.Config.EnabledPcuLimiter || cube == null || block == null ||
-                block.FatBlock == null)
-                return;
-            try
-            {
-                if (block.FatBlock.IsFunctional)
-                {
-                    if (IsLimitNotReached(cube))
-                        return;
-                    LimitReached(cube);
-                }
-            }
-            catch (Exception ex)
-            {
-                Log.Error(ex);
-            }
-        }
-
         public static void LimitReached(MyCubeGrid cube)
         {
-            //Log.Error("Grid " + cube.DisplayName + " is over limit");
-            gridsOverlimit.Add(cube.EntityId);
             List<IMySlimBlock> blocks = GridUtils.GetBlocks<IMyFunctionalBlock>((IMyCubeGrid)cube);
             foreach (var mySlimBlock in blocks)
             {
@@ -149,7 +40,6 @@ namespace SentisGameplayImprovements
             var subGrids = GridUtils.GetSubGrids((IMyCubeGrid)cube,SentisGameplayImprovementsPlugin.Config.IncludeConnectedGrids);
             foreach (var myCubeGrid in subGrids)
             {
-                gridsOverlimit.Add(myCubeGrid.EntityId);
                 List<IMySlimBlock> subGridBlocks = GridUtils.GetBlocks<IMyFunctionalBlock>(myCubeGrid);
                 foreach (var mySlimBlock in subGridBlocks)
                 {

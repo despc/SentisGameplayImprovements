@@ -85,6 +85,7 @@ namespace SentisGameplayImprovements
                     return;
                 _allGridsProcessor.OnLoaded();
                 PvECore.Init();
+                DamagePatch.Init();
                 InitShieldApi();
             }
         }
@@ -190,22 +191,21 @@ namespace SentisGameplayImprovements
                             {
                                 cubeGrid.Physics?.SetSpeeds(Vector3.Zero, Vector3.Zero);
                                 cubeGrid.ConvertToStatic();
-                            });
-                            
-                            try
-                            {
-                                MyMultiplayer.RaiseEvent(cubeGrid,
-                                    x => x.ConvertToStatic);
-                                foreach (var player in MySession.Static.Players.GetOnlinePlayers())
+                                try
                                 {
                                     MyMultiplayer.RaiseEvent(cubeGrid,
-                                        x => x.ConvertToStatic, new EndpointId(player.Id.SteamId));
+                                        x => x.ConvertToStatic);
+                                    foreach (var player in MySession.Static.Players.GetOnlinePlayers())
+                                    {
+                                        MyMultiplayer.RaiseEvent(cubeGrid,
+                                            x => x.ConvertToStatic, new EndpointId(player.Id.SteamId));
+                                    }
                                 }
-                            }
-                            catch (Exception ex)
-                            {
-                                Log.Error(ex, "()Exception in RaiseEvent.");
-                            }
+                                catch (Exception ex)
+                                {
+                                    Log.Error(ex, "()Exception in RaiseEvent.");
+                                }
+                            });
                         }
                         else
                         {
