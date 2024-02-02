@@ -1,9 +1,13 @@
-﻿using System.Reflection;
+﻿using System;
+using System.Reflection;
 using NLog;
 using Sandbox.Common.ObjectBuilders.Definitions;
+using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Character;
+using Sandbox.Game.EntityComponents;
 using SpaceEngineers.Game.EntityComponents.GameLogic;
 using Torch.Managers.PatchManager;
+using VRage;
 
 namespace SentisGameplayImprovements
 {
@@ -25,27 +29,42 @@ namespace SentisGameplayImprovements
         
         private static bool ProvideSupportPatched(MyLifeSupportingComponent __instance, MyCharacter user)
         {
-            if (!__instance.Entity.IsWorking)
+            var myLifeSupportingBlock = __instance.Entity;
+            if (!myLifeSupportingBlock.IsWorking)
                 return false;
             var character = __instance.User;
             if (character == null)
             {
                 character = user;
-                if (__instance.Entity.RefuelAllowed)
+                if (myLifeSupportingBlock.RefuelAllowed)
                 {
-                    var characterInventory = character.GetInventoryBase();
-                    foreach (var item in characterInventory.GetItems())
+                    try
                     {
-                        if (item.Content is MyObjectBuilder_GasContainerObject)
+                        var resourceStateByType = ((MyCubeGrid)myLifeSupportingBlock.CubeGrid).GridSystems
+                            .ResourceDistributor.ResourceStateByType(MyResourceDistributorComponent.HydrogenId, false);
+                        if (resourceStateByType == MyResourceStateEnum.NoPower)
                         {
-                            if (((MyObjectBuilder_GasContainerObject)item.Content).GasLevel > 1.0)
+                            return true;
+                        }
+                        var characterInventory = character.GetInventoryBase();
+                        foreach (var item in characterInventory.GetItems())
+                        {
+                            if (item.Content is MyObjectBuilder_GasContainerObject)
                             {
-                                continue;
+                                if (((MyObjectBuilder_GasContainerObject)item.Content).GasLevel > 1.0)
+                                {
+                                    continue;
+                                }
+                                ((MyObjectBuilder_GasContainerObject) item.Content).GasLevel = 1.02f;
+                                characterInventory.OnContentsChanged();
                             }
-                            ((MyObjectBuilder_GasContainerObject) item.Content).GasLevel = 1.02f;
-                            characterInventory.OnContentsChanged();
                         }
                     }
+                    catch (Exception e)
+                    {
+                        Log.Error(e, "Fill bottle exception");
+                    }
+                    
                 }
             }
             return true;
