@@ -11,6 +11,7 @@ using Sandbox.Game.Entities;
 using Sandbox.Game.SessionComponents;
 using Sandbox.Game.World;
 using Sandbox.ModAPI;
+using SentisGameplayImprovements.DelayedLogic;
 using Torch.Commands;
 using Torch.Commands.Permissions;
 using VRage;
@@ -142,7 +143,8 @@ namespace SentisGameplayImprovements
             if (player?.Character == null)
                 return;
             Log.Warn("Field Spawner: Start spawn field ");
-            Task.Run(() => { DoSpawnField(player?.Character, count, fieldSize, materials, radiusMin, radiusMax); });
+            DelayedProcessor.Instance.AddDelayedAction(DateTime.Now,
+                () => { DoSpawnField(player?.Character, count, fieldSize, materials, radiusMin, radiusMax); });
         }
 
         public void DoSpawnField(IMyCharacter playerCharacter, int count, int fieldSize, string materials,  int radiusMin, int radiusMax)
@@ -156,7 +158,9 @@ namespace SentisGameplayImprovements
             for (int i = 0; i < count; i++)
             {
                 var i1 = i;
-                Task.Run(() => GenerateAndSpawn(playerCharacter, count, fieldSize, radiusMin, radiusMax, i1, materialsArray));
+                DelayedProcessor.Instance.AddDelayedAction(DateTime.Now,
+                    () => GenerateAndSpawn(playerCharacter, count, fieldSize, radiusMin, radiusMax, i1,
+                        materialsArray));
                 Thread.Sleep(1000);
             }
         }

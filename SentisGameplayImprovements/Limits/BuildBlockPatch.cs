@@ -7,6 +7,7 @@ using NLog.Fluent;
 using Sandbox.Definitions;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Cube;
+using SentisGameplayImprovements.DelayedLogic;
 using Torch.Managers.PatchManager;
 using VRage.Game.ModAPI;
 using VRage.Network;
@@ -44,13 +45,12 @@ namespace SentisGameplayImprovements
                 }
             }
             
-            Task.Run(() =>
+            DelayedProcessor.Instance.AddDelayedAction(DateTime.Now.AddSeconds(2), () =>
             {
                 if (__instance != null)
                 {
                     CheckBeacon(__instance);
                 }
-                
             });
             if (!SentisGameplayImprovementsPlugin.Config.EnabledPcuLimiter)
                 return true;

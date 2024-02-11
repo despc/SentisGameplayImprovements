@@ -42,16 +42,16 @@
       <Compile Include="Api\ShieldApi.cs" />
       <Compile Include="Assholes\LandingGearPatch.cs" />
       <Compile Include="Assholes\MyMassBlockPatch.cs" />
+      <Compile Include="Assholes\Voxels.cs" />
       <Compile Include="Char\CharPatch.cs" />
       <Compile Include="Cleanup\CleanupPatch.cs" />
       <Compile Include="Commands\AdminCommands.cs" />
       <Compile Include="Commands\PlayerCommands.cs" />
-      <Compile Include="Common\GridPositionBehavior.cs" />
       <Compile Include="Config\MainConfig.cs" />
       <Compile Include="ContractPricePatch.cs" />
       <Compile Include="DamagePatch.cs" />
+      <Compile Include="DelayedLogic\DelayedProcessor.cs" />
       <Compile Include="Explosions\ExplosionsPatch.cs" />
-      <Compile Include="FixShip\FixShipLogic.cs" />
       <Compile Include="FixShip\MessageType.cs" />
       <Compile Include="GridSpawner\SpawnDelegate.cs" />
       <Compile Include="GridSpawner\NPCSpawner.cs" />
@@ -79,29 +79,14 @@
       <Compile Include="Shared\SharpUtils.cs" />
       <Compile Include="Shared\Voxels.cs" />
       <Compile Include="SentisGameplayImprovementsPlugin.cs" />
-      <Compile Include="Shipyard\Communication.cs" />
-      <Compile Include="Shipyard\Dto\ConvertSyncRequest.cs" />
-      <Compile Include="Shipyard\Dto\FixShipRequest.cs" />
-      <Compile Include="Shipyard\Dto\GUI\GuiGridsRequest.cs" />
-      <Compile Include="Shipyard\Dto\GUI\GuiGridsResponse.cs" />
-      <Compile Include="Shipyard\Dto\MessageType.cs" />
       <Compile Include="TurretPatchs.cs" />
       <Compile Include="Tweaks\MedkitPatches.cs" />
       <Compile Include="Utils\BlockUtils.cs" />
       <Compile Include="Utils\ChatUtils.cs" />
-      <Compile Include="Utils\ConfigUtils.cs" />
-      <Compile Include="Utils\CreditsUtils.cs" />
-      <Compile Include="Utils\FactionUtils.cs" />
       <Compile Include="Utils\GridUtils.cs" />
-      <Compile Include="Utils\IdentityUtils.cs" />
-      <Compile Include="Utils\InventoryUtils.cs" />
-      <Compile Include="Utils\NetworkUtils.cs" />
       <Compile Include="Utils\NotificationUtils.cs" />
-      <Compile Include="Utils\PhysicsUtils.cs" />
       <Compile Include="Utils\PlayerUtils.cs" />
-      <Compile Include="Utils\ProjectorUtils.cs" />
       <Compile Include="Utils\ReflectionUtils.cs" />
-      <Compile Include="Utils\SoundUtils.cs" />
     </ItemGroup>
     <ItemGroup>
       <Reference Include="HavokWrapper, Version=0.1.1.0, Culture=neutral, PublicKeyToken=null">

@@ -19,7 +19,6 @@ namespace SentisGameplayImprovements
     {
         public static readonly Logger Log = LogManager.GetCurrentClassLogger();
         public static Dictionary<long, GridVoxelContactInfo> contactInfo = new Dictionary<long, GridVoxelContactInfo>();
-        public static HashSet<long> protectedChars = new HashSet<long>();
         private static bool _init;
 
         public static void Init()
@@ -51,15 +50,6 @@ namespace SentisGameplayImprovements
                 damage.IsDeformation = false;
                 return;
             }
-            // IMyCharacter character = target as IMyCharacter;
-            // if (character != null)
-            // {
-            //     if (protectedChars.Contains(character.EntityId))
-            //     {
-            //         damage.Amount = 0;
-            //         return;
-            //     }
-            // }
         }
         public static void Patch(PatchContext ctx)
         {

@@ -1,16 +1,11 @@
 ﻿using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 using NLog;
-using Sandbox;
-using Sandbox.Engine.Multiplayer;
 using Sandbox.Game.Entities;
-using Sandbox.Game.GameSystems;
-using Sandbox.Game.World;
-using Sandbox.ModAPI;
 using SentisGameplayImprovements.AllGridsActions;
+using SentisGameplayImprovements.DelayedLogic;
 using SentisGameplayImprovements.PveZone;
 using SOPlugin.GUI;
 using Torch;
@@ -19,8 +14,6 @@ using Torch.API.Managers;
 using Torch.API.Plugins;
 using Torch.API.Session;
 using Torch.Session;
-using VRage.Network;
-using VRageMath;
 
 namespace SentisGameplayImprovements
 {
@@ -30,18 +23,18 @@ namespace SentisGameplayImprovements
         private static TorchSessionManager SessionManager;
         private static Persistent<MainConfig> _config;
         public static MainConfig Config => _config.Data;
-        public static Dictionary<long,long> stuckGrids = new Dictionary<long, long>();
-        public static Random _random = new Random();
         public UserControl _control = null;
         public static SentisGameplayImprovementsPlugin Instance { get; private set; }
         public static PcuLimiter _limiter = new PcuLimiter();
         private AllGridsProcessor _allGridsProcessor = new AllGridsProcessor();
+        public DelayedProcessor DelayedProcessor = new DelayedProcessor();
         public static ShieldApi SApi = new ShieldApi();
 
         public override void Init(ITorchBase torch)
         {
             Instance = this;
-            Log.Info("Init Sentis Adventures Plugin");
+            DelayedProcessor.Instance = DelayedProcessor;
+            Log.Info("Init Sentis Gameplay Improvements Plugin");
             SetupConfig();
             SessionManager = Torch.Managers.GetManager<TorchSessionManager>();
             if (SessionManager == null)
@@ -78,6 +71,7 @@ namespace SentisGameplayImprovements
             if (newState == TorchSessionState.Unloading)
             {
                 _allGridsProcessor.OnUnloading();
+                DelayedProcessor.OnUnloading();
             }
             else
             {
@@ -86,6 +80,7 @@ namespace SentisGameplayImprovements
                 _allGridsProcessor.OnLoaded();
                 PvECore.Init();
                 DamagePatch.Init();
+                DelayedProcessor.OnLoaded();
                 InitShieldApi();
             }
         }
@@ -101,144 +96,6 @@ namespace SentisGameplayImprovements
             {
                 Log.Error(e);
             }
-        }
-
-        public void UpdateGui()
-        {
-            try
-            {
-                // var npcCount = AllGridsProcessor.NpcLifetimeDict.Count;
-                //
-                Instance.UpdateUI((x) =>
-                {
-                    // var gui = x as ConfigGUI;
-                    // gui.AdventuresInfo.Text =
-                    //     $"Npc count in world: {npcCount}";
-                });
-            }
-            catch (Exception e)
-            {
-                Log.Error(e, "WTF?");
-            }
-        }
-
-        public void UpdateUI(Action<UserControl> action)
-        {
-            try
-            {
-                if (_control != null)
-                {
-                    _control.Dispatcher.Invoke(() =>
-                    {
-                        try
-                        {
-                            action.Invoke(_control);
-                        }
-                        catch (Exception e)
-                        {
-                            Log.Error(e, "Something wrong in executing function:" + action);
-                        }
-                    });
-                }
-            }
-            catch (Exception e)
-            {
-                Log.Error(e, "Cant UpdateUI");
-            }
-        }
-
-        public override void Update()
-        {
-            if (MySandboxGame.Static.SimulationFrameCounter % 600 == 0)
-            {
-                Task.Run(UpdateGui);
-            }
-            
-            if (MySandboxGame.Static.SimulationFrameCounter % 120 == 0)
-            {
-                Task.Run(ProcessVoxelsContacts);
-            }
-        }
-
-        private static void ProcessVoxelsContacts()
-        {
-            foreach (var gridVoxelContactInfo in DamagePatch.contactInfo)
-            {
-                var entityId = gridVoxelContactInfo.Key;
-                var cubeGrid = gridVoxelContactInfo.Value.MyCubeGrid;
-                var contactCount = gridVoxelContactInfo.Value.Count;
-                
-                if (contactCount > 50)
-                {
-                    Log.Error("Entity  " + cubeGrid.DisplayName + " position " +
-                              cubeGrid.PositionComp.GetPosition() + " contact count - " + contactCount);
-                }
-
-                if (contactCount < 800)
-                {
-                    continue;
-                }
-
-                if (stuckGrids.ContainsKey(entityId))
-                {
-                    if (stuckGrids[entityId] > 5)
-                    {
-                        if (!Vector3.IsZero(
-                                MyGravityProviderSystem.CalculateNaturalGravityInPoint(cubeGrid.WorldMatrix
-                                    .Translation)))
-                        {
-                            MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                            {
-                                cubeGrid.Physics?.SetSpeeds(Vector3.Zero, Vector3.Zero);
-                                cubeGrid.ConvertToStatic();
-                                try
-                                {
-                                    MyMultiplayer.RaiseEvent(cubeGrid,
-                                        x => x.ConvertToStatic);
-                                    foreach (var player in MySession.Static.Players.GetOnlinePlayers())
-                                    {
-                                        MyMultiplayer.RaiseEvent(cubeGrid,
-                                            x => x.ConvertToStatic, new EndpointId(player.Id.SteamId));
-                                    }
-                                }
-                                catch (Exception ex)
-                                {
-                                    Log.Error(ex, "()Exception in RaiseEvent.");
-                                }
-                            });
-                        }
-                        else
-                        {
-                            try
-                            {
-                                Log.Info("Teleport stuck grid " + cubeGrid.DisplayName);
-                                MatrixD worldMatrix = cubeGrid.WorldMatrix;
-                                var position = cubeGrid.PositionComp.GetPosition();
-
-                                var garbageLocation = new Vector3D(position.X + _random.Next(-10000, 10000),
-                                    position.Y + _random.Next(-10000, 10000),
-                                    position.Z + _random.Next(-10000, 10000));
-                                worldMatrix.Translation = garbageLocation;
-                                MyAPIGateway.Utilities.InvokeOnGameThread(() => { cubeGrid.Teleport(worldMatrix); });
-                            }
-                            catch (Exception e)
-                            {
-                                Log.Error("Exception in time try teleport entity to garbage", e);
-                            }
-                        }
-
-                        stuckGrids.Remove(entityId);
-                        continue;
-                    }
-
-                    stuckGrids[entityId] += 1;
-                    continue;
-                }
-
-                stuckGrids[entityId] = 1;
-            }
-
-            DamagePatch.contactInfo.Clear();
         }
 
         public UserControl GetControl()

@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using NLog;
 using Sandbox.Game.Entities;
 using Sandbox.ModAPI;
+using SentisGameplayImprovements.Assholes;
 
 namespace SentisGameplayImprovements.AllGridsActions
 {
@@ -25,6 +26,7 @@ namespace SentisGameplayImprovements.AllGridsActions
         {
             CancellationTokenSource = new CancellationTokenSource();
             Task.Run(CheckLoop);
+            Task.Run(FastCheckLoop);
         }
 
         public void OnUnloading()
@@ -32,6 +34,30 @@ namespace SentisGameplayImprovements.AllGridsActions
             CancellationTokenSource.Cancel();
         }
 
+        public void FastCheckLoop()
+        {
+            try
+            {
+                Log.Info("FastCheckLoop started");
+                while (!CancellationTokenSource.Token.IsCancellationRequested)
+                {
+                    try
+                    {
+                        Thread.Sleep(1000);
+                        Voxels.ProcessVoxelsContacts();
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Error("FastCheckLoop Error", e);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Error("CheckLoop start Error", e);
+            }
+        }
+        
         public async void CheckLoop()
         {
             try

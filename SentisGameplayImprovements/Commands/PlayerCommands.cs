@@ -358,7 +358,6 @@ namespace SentisGameplayImprovements
             {
                 grid.Physics?.SetSpeeds(Vector3.Zero, Vector3.Zero);
                 grid.ConvertToStatic();
-                SyncConvert(grid, true);
                 try
                 {
                     MyMultiplayer.RaiseEvent(grid, x => x.ConvertToStatic);
@@ -407,7 +406,6 @@ namespace SentisGameplayImprovements
             try
             {
                 grid.OnConvertToDynamic();
-                SyncConvert(grid, false);
                 return true;
             }
             catch (Exception e)
@@ -416,26 +414,5 @@ namespace SentisGameplayImprovements
             }
         }
 
-        public static void SyncConvert(MyCubeGrid grid, bool isStatic)
-        {
-            ConvertSyncRequest response = new ConvertSyncRequest();
-            response.IsStatic = isStatic;
-            response.GridEntityId = grid.EntityId;
-            foreach (var p in PlayerUtils.GetAllPlayers())
-            {
-                if (p.IsBot)
-                {
-                    continue;
-                }
-
-                if (p.Character == null)
-                {
-                    continue;
-                }
-                Communication.SendToClient(MessageType.SyncConvert,
-                    MyAPIGateway.Utilities.SerializeToBinary(response),p.SteamUserId);
-            }
-
-        }
     }
 }

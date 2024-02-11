@@ -8,6 +8,7 @@ using Sandbox.Game.Entities.Cube;
 using Sandbox.Game.EntityComponents;
 using Sandbox.Game.World;
 using Sandbox.ModAPI;
+using SentisGameplayImprovements.DelayedLogic;
 using VRage.Game;
 using VRage.ObjectBuilders;
 
@@ -32,7 +33,7 @@ namespace SentisGameplayImprovements.AllGridsActions
                                 MyEntities.GetEntityById(station.StationEntityId) is MyCubeGrid entityById)
                             {
                                 var mySlimBlocks = new HashSet<MySlimBlock>(entityById.GetBlocks());
-                                Task.Run(() =>
+                                DelayedProcessor.Instance.AddDelayedAction(DateTime.Now.AddSeconds(1),() =>
                                 {
                                     try
                                     {
