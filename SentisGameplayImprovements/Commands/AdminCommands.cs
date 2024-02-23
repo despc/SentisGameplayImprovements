@@ -72,7 +72,8 @@ namespace SentisGameplayImprovements
             if (player?.Character == null)
                 return;
             Log.Warn("Field Spawner: Start spawn field ");
-            DoSpawnField2(player?.Character, count, fieldSize);
+            DelayedProcessor.Instance.AddDelayedAction(DateTime.Now,
+                () => { DoSpawnField2(player?.Character, count, fieldSize); });
         }
 
         public void DoSpawnField2(IMyCharacter playerCharacter, int count, int fieldSize)

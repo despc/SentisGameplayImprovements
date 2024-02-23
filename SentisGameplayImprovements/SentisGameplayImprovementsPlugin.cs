@@ -44,11 +44,11 @@ namespace SentisGameplayImprovements
             MyEntities.OnEntityRemove += EntitiesObserver.MyEntitiesOnOnEntityRemove;
             SessionManager.SessionStateChanged += SessionManager_SessionStateChanged;
             
-            if (string.IsNullOrEmpty(configOverrideModIds))
+            if (!string.IsNullOrEmpty(configOverrideModIds))
             {
                 foreach (var modId in configOverrideModIds.Split(','))
                 {
-                    if (string.IsNullOrEmpty(configOverrideModIds))
+                    if (!string.IsNullOrEmpty(modId))
                     {
                         try
                         {

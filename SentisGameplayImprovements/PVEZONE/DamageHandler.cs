@@ -66,37 +66,34 @@ namespace SentisGameplayImprovements.PveZone
 
             if (attackerId == 0L)
             {
-                info.Amount = 0f;
-                info.IsDeformation = false;
+                return;
             }
-            else
+
+            if (underAttackId == 0L || underAttackId == attackerId)
+                return;
+
+            if ((MySession.Static.Players.IdentityIsNpc(attackerId) ||
+                 MySession.Static.Players.IdentityIsNpc(underAttackId))
+                && SentisGameplayImprovementsPlugin.Config.EnableDamageFromNPC)
             {
-                if (underAttackId == 0L || underAttackId == attackerId)
-                    return;
-
-                if ((MySession.Static.Players.IdentityIsNpc(attackerId) ||
-                     MySession.Static.Players.IdentityIsNpc(underAttackId))
-                    && SentisGameplayImprovementsPlugin.Config.EnableDamageFromNPC)
-                {
-                    return;
-                }
-
-
-                var steamId1 = MySession.Static.Players.TryGetSteamId(attackerId);
-                var steamId2 = MySession.Static.Players.TryGetSteamId(underAttackId);
-                var attackerFaction = MySession.Static.Factions.TryGetPlayerFaction(attackerId);
-                var underAttackFaction = MySession.Static.Factions.TryGetPlayerFaction(underAttackId);
-
-                if ((steamId1 != 0UL && steamId2 != 0UL && steamId1 == steamId2)
-                    || (attackerFaction != null && underAttackFaction != null &&
-                        attackerFaction.Tag == underAttackFaction.Tag))
-                {
-                    return;
-                }
-
-                info.Amount = 0f;
-                info.IsDeformation = false;
+                return;
             }
+
+
+            var steamId1 = MySession.Static.Players.TryGetSteamId(attackerId);
+            var steamId2 = MySession.Static.Players.TryGetSteamId(underAttackId);
+            var attackerFaction = MySession.Static.Factions.TryGetPlayerFaction(attackerId);
+            var underAttackFaction = MySession.Static.Factions.TryGetPlayerFaction(underAttackId);
+
+            if ((steamId1 != 0UL && steamId2 != 0UL && steamId1 == steamId2)
+                || (attackerFaction != null && underAttackFaction != null &&
+                    attackerFaction.Tag == underAttackFaction.Tag))
+            {
+                return;
+            }
+
+            info.Amount = 0f;
+            info.IsDeformation = false;
         }
 
         private static long GetAttackerId(MyEntity attackerEntity)

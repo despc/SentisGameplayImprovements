@@ -18,7 +18,7 @@ namespace SentisGameplayImprovements.AllGridsActions
             }
             try
             {
-                if (grid.DisplayName.Contains("Container MK-"))
+                if (grid.DisplayName.Contains("Container MK-") || grid.DisplayName.Contains("Container_MK-"))
                     return;
                 
                 if (grid.MarkedForClose || grid.Closed)
