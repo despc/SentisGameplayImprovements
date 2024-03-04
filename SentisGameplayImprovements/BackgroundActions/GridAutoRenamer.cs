@@ -5,7 +5,7 @@ using Sandbox.Game.Multiplayer;
 using Sandbox.Game.World;
 using VRage.Game;
 
-namespace SentisGameplayImprovements.AllGridsActions
+namespace SentisGameplayImprovements.BackgroundActions
 {
     public class GridAutoRenamer
     {
@@ -42,6 +42,10 @@ namespace SentisGameplayImprovements.AllGridsActions
             if (ownerId != 0)
             {
                 MyIdentity identity = Sync.Players.TryGetIdentity(ownerId);
+                if (identity == null)
+                {
+                    return;
+                }
                 ownerName = identity.DisplayName;
             }
 

@@ -865,10 +865,9 @@ namespace SentisGameplayImprovements
                 MakeExplosionAndDamage(instanceOwnerId, m_explosionFullSphere.Center,
                     (float) m_explosionFullSphere.Radius,
                     m_warheadDefinition.WarheadExplosionDamage * SentisGameplayImprovementsPlugin.Config.WarheadDamageMultiplier, instanceEntityId, false, true);
-                //MySyncDamage.DoDamageSynced(__instance, 999999, MyDamageType.Bullet, 0);
-                InvokeInstanceMethod(typeof(MyCubeGrid), __instance.CubeGrid, "RemoveBlockByCubeBuilder",
-                    new Object[] {__instance.SlimBlock});
-                //__instance.SlimBlock.Rem
+
+                __instance.CubeGrid.RemoveDestroyedBlock(__instance.SlimBlock, instanceOwnerId);
+                MyDamageSystem.Static.RaiseDestroyed(__instance.SlimBlock, new MyDamageInformation(false, 999999, MyDamageType.Explosion, attackerId: instanceOwnerId));
                 return false;
             }
             catch (Exception e)

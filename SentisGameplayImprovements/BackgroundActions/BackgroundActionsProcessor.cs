@@ -5,11 +5,12 @@ using System.Threading.Tasks;
 using NLog;
 using Sandbox.Game.Entities;
 using Sandbox.ModAPI;
+using SentisGameplayImprovements.AllGridsActions;
 using SentisGameplayImprovements.Assholes;
 
-namespace SentisGameplayImprovements.AllGridsActions
+namespace SentisGameplayImprovements.BackgroundActions
 {
-    public class AllGridsProcessor
+    public class BackgroundActionsProcessor
     {
         public static FallInVoxelDetector FallInVoxelDetector = new FallInVoxelDetector();
         private GridAutoRenamer _autoRenamer = new GridAutoRenamer();
@@ -45,6 +46,7 @@ namespace SentisGameplayImprovements.AllGridsActions
                     {
                         Thread.Sleep(1000);
                         Voxels.ProcessVoxelsContacts();
+                        FloatingObjectsProcessor.CheckFloatingObjects();
                     }
                     catch (Exception e)
                     {

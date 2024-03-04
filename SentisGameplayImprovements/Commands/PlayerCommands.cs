@@ -8,6 +8,7 @@ using Sandbox.Game.Entities;
 using Sandbox.Game.World;
 using Sandbox.ModAPI;
 using SentisGameplayImprovements.AllGridsActions;
+using SentisGameplayImprovements.BackgroundActions;
 using Torch.Commands;
 using Torch.Commands.Permissions;
 using VRage.Game;
@@ -96,7 +97,7 @@ namespace SentisGameplayImprovements
                 //     return;
                 // }
 
-                var fallInVoxelDetector = AllGridsProcessor.FallInVoxelDetector;
+                var fallInVoxelDetector = BackgroundActionsProcessor.FallInVoxelDetector;
                 if (fallInVoxelDetector.gridsPos.TryGetValue(gridToRevert.EntityId, out PositionAndOrientation pos))
                 {
                     fallInVoxelDetector.DoRestoreSync(gridToRevert, true, pos);

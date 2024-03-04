@@ -81,6 +81,12 @@ namespace SentisGameplayImprovements
         private bool _disableLockLandingGearOnNPCShips = false;
         private bool _disableBuildBlockOnNPC = false;
         
+        //loot
+        private bool _enableLootSystem = false;
+        private bool _customFloatingObjectsCleanup = false;
+        private int _floatingObjectsLifetime = 5;
+        private bool _connectorDestroyInsteadThrow = false;
+        
         [DisplayTab(Name = "Online Reward Enabled", GroupName = "Online Reward", Tab = "Online Reward", Order = 0, Description = "Online Reward Enabled")]
         public bool OnlineRewardEnabled
         {
@@ -360,5 +366,32 @@ namespace SentisGameplayImprovements
             set => SetValue(ref _damageVoxelsFromExplosions, value);
         }
         
+        [DisplayTab(Name = "Loot system enabled", GroupName = "Loot system", Tab = "Loot system", Order = 0, Description = "Loot system enabled")]
+        public bool LootSystemEnabled
+        {
+            get => _enableLootSystem;
+            set => SetValue(ref _enableLootSystem, value);
+        }
+        
+        [DisplayTab(Name = "Custom floating objects cleanup", GroupName = "Loot system", Tab = "Loot system", Order = 1, Description = "Custom floating objects cleanup")]
+        public bool CustomFloatingObjectsCleanup
+        {
+            get => _customFloatingObjectsCleanup;
+            set => SetValue(ref _customFloatingObjectsCleanup, value);
+        }
+        
+        [DisplayTab(Name = "Floating objects lifetime", GroupName = "Loot system", Tab = "Loot system", Order = 2, Description = "Floating objects lifetime")]
+        public int FloatingObjectsLifetime
+        {
+            get => _floatingObjectsLifetime;
+            set => SetValue(ref _floatingObjectsLifetime, value);
+        }
+        
+        [DisplayTab(Name = "Connector destroy instead throw", GroupName = "Loot system", Tab = "Loot system", Order = 1, Description = "Connector destroy instead throw (only ores and ingots)")]
+        public bool ConnectorDestroyInsteadThrow
+        {
+            get => _connectorDestroyInsteadThrow;
+            set => SetValue(ref _connectorDestroyInsteadThrow, value);
+        }
     }
 }

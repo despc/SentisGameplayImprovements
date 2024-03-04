@@ -6,7 +6,7 @@ using VRage.Game;
 using VRage.Game.ModAPI;
 using VRage.ObjectBuilders;
 
-namespace SentisGameplayImprovements.AllGridsActions
+namespace SentisGameplayImprovements.BackgroundActions
 {
     public class OnlineReward
     {

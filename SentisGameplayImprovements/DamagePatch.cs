@@ -1,16 +1,26 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Reflection;
 using Havok;
 using NLog;
 using Sandbox;
+using Sandbox.Definitions;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Cube;
+using Sandbox.Game.World;
 using Sandbox.ModAPI;
+using SentisGameplayImprovements.DelayedLogic;
+using SentisGameplayImprovements.Loot;
 using SentisGameplayImprovements.PveZone;
 using Torch.Managers.PatchManager;
+using VRage.Game;
+using VRage.Game.Components;
 using VRage.Game.Entity;
 using VRage.Game.ModAPI;
+using VRage.ObjectBuilders.Private;
+using VRage.Utils;
+using VRageMath;
 
 namespace SentisGameplayImprovements
 {
@@ -50,7 +60,12 @@ namespace SentisGameplayImprovements
                 damage.IsDeformation = false;
                 return;
             }
+
+            LootProcessor.CalculateLoot(target, damage);
         }
+
+        
+
         public static void Patch(PatchContext ctx)
         {
             var MethodPerformDeformation = typeof(MyGridPhysics).GetMethod
@@ -117,6 +132,7 @@ namespace SentisGameplayImprovements
                     {
                         return true;
                     }
+
                     return false;
                 }
             }
@@ -133,7 +149,8 @@ namespace SentisGameplayImprovements
                     return true;
                 }
 
-                if (((MyCubeGrid)otherEntity).Mass < SentisGameplayImprovementsPlugin.Config.MinimumMassForKineticDamage)
+                if (((MyCubeGrid)otherEntity).Mass <
+                    SentisGameplayImprovementsPlugin.Config.MinimumMassForKineticDamage)
                 {
                     return false;
                 }

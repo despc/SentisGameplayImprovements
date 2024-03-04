@@ -1,6 +1,7 @@
 ﻿using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Character;
 using Sandbox.Game.Entities.Cube;
+using Sandbox.Game.Multiplayer;
 using Sandbox.Game.Weapons;
 using Sandbox.Game.World;
 using Sandbox.ModAPI;
@@ -72,6 +73,17 @@ namespace SentisGameplayImprovements.PveZone
             if (underAttackId == 0L || underAttackId == attackerId)
                 return;
 
+            MyIdentity underAttackIdentity = Sync.Players.TryGetIdentity(underAttackId);
+            if (underAttackIdentity == null)
+            {
+                return;
+            }
+            
+            MyIdentity attackerIdentity = Sync.Players.TryGetIdentity(attackerId);
+            if (attackerIdentity == null)
+            {
+                return;
+            }
             if ((MySession.Static.Players.IdentityIsNpc(attackerId) ||
                  MySession.Static.Players.IdentityIsNpc(underAttackId))
                 && SentisGameplayImprovementsPlugin.Config.EnableDamageFromNPC)

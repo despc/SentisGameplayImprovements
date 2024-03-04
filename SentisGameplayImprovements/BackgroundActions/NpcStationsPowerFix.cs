@@ -12,7 +12,7 @@ using SentisGameplayImprovements.DelayedLogic;
 using VRage.Game;
 using VRage.ObjectBuilders;
 
-namespace SentisGameplayImprovements.AllGridsActions
+namespace SentisGameplayImprovements.BackgroundActions
 {
     public class NpcStationsPowerFix
     {

@@ -4,7 +4,7 @@ using Sandbox.Game.Entities;
 using SentisGameplayImprovements.PveZone;
 using VRageMath;
 
-namespace SentisGameplayImprovements.AllGridsActions
+namespace SentisGameplayImprovements.BackgroundActions
 {
     public class PvEGridChecker
     {

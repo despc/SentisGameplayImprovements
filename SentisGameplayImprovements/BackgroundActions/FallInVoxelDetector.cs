@@ -3,10 +3,11 @@ using System.Collections.Generic;
 using Sandbox.Game.Entities;
 using Sandbox.ModAPI;
 using Scripts.Shared;
+using SentisGameplayImprovements.AllGridsActions;
 using VRage.Game.ModAPI;
 using VRageMath;
 
-namespace SentisGameplayImprovements.AllGridsActions
+namespace SentisGameplayImprovements.BackgroundActions
 {
     public class FallInVoxelDetector
     {

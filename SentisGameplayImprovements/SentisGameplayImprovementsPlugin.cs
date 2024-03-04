@@ -5,6 +5,7 @@ using System.Windows.Controls;
 using NLog;
 using Sandbox.Game.Entities;
 using SentisGameplayImprovements.AllGridsActions;
+using SentisGameplayImprovements.BackgroundActions;
 using SentisGameplayImprovements.DelayedLogic;
 using SentisGameplayImprovements.PveZone;
 using SOPlugin.GUI;
@@ -26,7 +27,7 @@ namespace SentisGameplayImprovements
         public UserControl _control = null;
         public static SentisGameplayImprovementsPlugin Instance { get; private set; }
         public static PcuLimiter _limiter = new PcuLimiter();
-        private AllGridsProcessor _allGridsProcessor = new AllGridsProcessor();
+        private BackgroundActionsProcessor _backgroundActionsProcessor = new BackgroundActionsProcessor();
         public DelayedProcessor DelayedProcessor = new DelayedProcessor();
         public static ShieldApi SApi = new ShieldApi();
 
@@ -70,14 +71,14 @@ namespace SentisGameplayImprovements
         {
             if (newState == TorchSessionState.Unloading)
             {
-                _allGridsProcessor.OnUnloading();
+                _backgroundActionsProcessor.OnUnloading();
                 DelayedProcessor.OnUnloading();
             }
             else
             {
                 if (newState != TorchSessionState.Loaded)
                     return;
-                _allGridsProcessor.OnLoaded();
+                _backgroundActionsProcessor.OnLoaded();
                 PvECore.Init();
                 DamagePatch.Init();
                 DelayedProcessor.OnLoaded();
@@ -116,7 +117,7 @@ namespace SentisGameplayImprovements
         public override void Dispose()
         {
             _config.Save(Path.Combine(StoragePath, "SentisGameplayImprovements.cfg"));
-            _allGridsProcessor.CancellationTokenSource.Cancel();
+            _backgroundActionsProcessor.CancellationTokenSource.Cancel();
             base.Dispose();
         }
     }

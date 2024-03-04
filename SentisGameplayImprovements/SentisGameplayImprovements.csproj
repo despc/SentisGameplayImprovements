@@ -33,12 +33,13 @@
         <WarningLevel>4</WarningLevel>
     </PropertyGroup>
     <ItemGroup>
-      <Compile Include="AllGridsActions\AllGridsProcessor.cs" />
-      <Compile Include="AllGridsActions\FallInVoxelDetector.cs" />
-      <Compile Include="AllGridsActions\GridAutoRenamer.cs" />
-      <Compile Include="AllGridsActions\NpcStationsPowerFix.cs" />
-      <Compile Include="AllGridsActions\OnlineReward.cs" />
-      <Compile Include="AllGridsActions\PvEGridChecker.cs" />
+      <Compile Include="BackgroundActions\BackgroundActionsProcessor.cs" />
+      <Compile Include="BackgroundActions\FallInVoxelDetector.cs" />
+      <Compile Include="BackgroundActions\FloatingObjectsProcessor.cs" />
+      <Compile Include="BackgroundActions\GridAutoRenamer.cs" />
+      <Compile Include="BackgroundActions\NpcStationsPowerFix.cs" />
+      <Compile Include="BackgroundActions\OnlineReward.cs" />
+      <Compile Include="BackgroundActions\PvEGridChecker.cs" />
       <Compile Include="Api\ShieldApi.cs" />
       <Compile Include="Assholes\LandingGearPatch.cs" />
       <Compile Include="Assholes\MyMassBlockPatch.cs" />
@@ -63,6 +64,8 @@
       <Compile Include="Limits\BuildBlockPatch.cs" />
       <Compile Include="Limits\PcuLimiter.cs" />
       <Compile Include="Limits\RaycastPatch.cs" />
+      <Compile Include="Loot\LootPatch.cs" />
+      <Compile Include="Loot\LootProcessor.cs" />
       <Compile Include="MissilePatch.cs" />
       <Compile Include="NoScrapPatch.cs" />
       <Compile Include="NPC\NpcPatches.cs" />
@@ -89,6 +92,9 @@
       <Compile Include="Utils\ReflectionUtils.cs" />
     </ItemGroup>
     <ItemGroup>
+      <Reference Include="0Harmony">
+        <HintPath>lib\0Harmony.dll</HintPath>
+      </Reference>
       <Reference Include="HavokWrapper, Version=0.1.1.0, Culture=neutral, PublicKeyToken=null">
         <HintPath>C:\SE\Arrakis\torch-server\DedicatedServer64\HavokWrapper.dll</HintPath>
       </Reference>
