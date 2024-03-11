@@ -28,6 +28,7 @@ namespace SentisGameplayImprovements.BackgroundActions
             CancellationTokenSource = new CancellationTokenSource();
             Task.Run(CheckLoop);
             Task.Run(FastCheckLoop);
+            Task.Run(NotSoFastFastCheckLoop);
         }
 
         public void OnUnloading()
@@ -46,7 +47,6 @@ namespace SentisGameplayImprovements.BackgroundActions
                     {
                         Thread.Sleep(1000);
                         Voxels.ProcessVoxelsContacts();
-                        FloatingObjectsProcessor.CheckFloatingObjects();
                     }
                     catch (Exception e)
                     {
@@ -57,6 +57,31 @@ namespace SentisGameplayImprovements.BackgroundActions
             catch (Exception e)
             {
                 Log.Error("CheckLoop start Error", e);
+            }
+        }
+        
+        public void NotSoFastFastCheckLoop()
+        {
+            try
+            {
+                Log.Info("NotSoFastFastCheckLoop started");
+                while (!CancellationTokenSource.Token.IsCancellationRequested)
+                {
+                    try
+                    {
+                        Thread.Sleep(5000);
+                        FloatingObjectsProcessor.CheckFloatingObjects();
+                        FloatingObjectsProcessor.SpawnAccumulatedLoot();
+                    }
+                    catch (Exception e)
+                    {
+                        Log.Error("NotSoFastFastCheckLoop Error", e);
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                Log.Error("NotSoFastFastCheckLoop start Error", e);
             }
         }
         

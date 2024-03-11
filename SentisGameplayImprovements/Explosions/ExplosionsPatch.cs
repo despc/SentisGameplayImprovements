@@ -13,7 +13,7 @@ namespace SentisGameplayImprovements
     public static class ExplosionsPatch
     {
         public static Harmony harmony = new Harmony("ExplosionsPatch");
-        
+
         public static void Patch(PatchContext ctx)
         {
             var UpdateAfterSimulationParallel = typeof(MyFloatingObject).GetMethod
@@ -25,16 +25,16 @@ namespace SentisGameplayImprovements
 
             var CheckObjectInVoxel = typeof(MyFloatingObjects).GetMethod
                 ("CheckObjectInVoxel", BindingFlags.Instance | BindingFlags.NonPublic);
-            
+
             var RegisterFloatingObject = typeof(MyFloatingObjects).GetMethod
                 ("RegisterFloatingObject", BindingFlags.Static | BindingFlags.NonPublic);
-            
+
             var UnRegisterFloatingObject = typeof(MyFloatingObjects).GetMethod
                 ("UnregisterFloatingObject", BindingFlags.Static | BindingFlags.NonPublic);
-            
+
             var finalizer = typeof(ExplosionsPatch).GetMethod(nameof(SuppressExceptionFinalizer),
                 BindingFlags.Static | BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-            
+
             harmony.Patch(UnRegisterFloatingObject, finalizer: new HarmonyMethod(finalizer));
             harmony.Patch(RegisterFloatingObject, finalizer: new HarmonyMethod(finalizer));
             harmony.Patch(CheckObjectInVoxel, finalizer: new HarmonyMethod(finalizer));
@@ -48,16 +48,23 @@ namespace SentisGameplayImprovements
             // }
             return null;
         }
-        
+
         private static bool UpdateAfterSimulationParallelPatched(MyFloatingObject __instance)
         {
             if (!SentisGameplayImprovementsPlugin.Config.ExplosionTweaks)
             {
                 return true;
             }
-           
+
             try
             {
+                var content = __instance.Item.Content;
+                var canExploded = content is MyObjectBuilder_AmmoMagazine || "Explosives".Equals(content.SubtypeName);
+                if (!canExploded)
+                {
+                    return true;
+                }
+
                 var acceleration = __instance.Physics.LinearAcceleration;
                 if (acceleration.X > SentisGameplayImprovementsPlugin.Config.AccelerationToDamage
                     || acceleration.Y > SentisGameplayImprovementsPlugin.Config.AccelerationToDamage
@@ -66,7 +73,6 @@ namespace SentisGameplayImprovements
                     __instance.DoDamage(999, MyDamageType.Explosion, true, 0);
                     return false;
                 }
-                
             }
             catch (Exception e)
             {
@@ -75,6 +81,5 @@ namespace SentisGameplayImprovements
 
             return true;
         }
-
     }
 }

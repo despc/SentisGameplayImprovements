@@ -14,7 +14,7 @@ namespace SentisGameplayImprovements.AllGridsActions
 
         public static HashSet<MySafeZone> Safezones = new HashSet<MySafeZone>();
         public static HashSet<MyCubeGrid> MyCubeGrids = new HashSet<MyCubeGrid>();
-        public static ConcurrentDictionary<MyFloatingObject, DateTime> MyFloatingObject = new ConcurrentDictionary<MyFloatingObject, DateTime>();
+        public static ConcurrentDictionary<MyFloatingObject, DateTime> MyFloatingObjects = new ConcurrentDictionary<MyFloatingObject, DateTime>();
         public static HashSet<IMyVoxelMap> VoxelMaps = new HashSet<IMyVoxelMap>();
         public static HashSet<MyPlanet> Planets = new HashSet<MyPlanet>();
 
@@ -22,7 +22,7 @@ namespace SentisGameplayImprovements.AllGridsActions
         {
             if (entity is MyFloatingObject)
             {
-                MyFloatingObject.Remove((MyFloatingObject)entity);
+                MyFloatingObjects.Remove((MyFloatingObject)entity);
                 return;
             }
            
@@ -54,7 +54,7 @@ namespace SentisGameplayImprovements.AllGridsActions
         {
             if (entity is MyFloatingObject)
             {
-                MyFloatingObject.TryAdd((MyFloatingObject)entity, DateTime.Now);
+                MyFloatingObjects.TryAdd((MyFloatingObject)entity, DateTime.Now);
                 return;
             }
 

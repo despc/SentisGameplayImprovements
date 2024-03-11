@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
@@ -8,7 +9,6 @@ using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Cube;
 using Sandbox.Game.World;
 using Sandbox.ModAPI;
-using SentisGameplayImprovements.DelayedLogic;
 using VRage.Game;
 using VRage.Game.Components;
 using VRage.Game.Entity;
@@ -22,7 +22,9 @@ namespace SentisGameplayImprovements.Loot;
 public class LootProcessor
 {
     public static readonly Logger Log = LogManager.GetCurrentClassLogger();
-    
+
+    public static ConcurrentDictionary<MyCubeGrid, Dictionary<MyDefinitionId, int>> ComponentsSpawnBuffer =
+        new ConcurrentDictionary<MyCubeGrid, Dictionary<MyDefinitionId, int>>();
     public static void CalculateLoot(object target, MyDamageInformation info)
         {
             var slimBlock = target as MySlimBlock;
@@ -80,12 +82,30 @@ public class LootProcessor
 
             if (componentsToSpawn.Count > 0)
             {
-                DelayedProcessor.Instance.AddDelayedAction(DateTime.Now.AddSeconds(1),
-                    () => { CheckPlaceAndSpawnItems(componentsToSpawn, slimBlock, slimBlock.WorldPosition); });
+                Dictionary<MyDefinitionId, int> componentsToSpawnFromBuffer;
+                if (ComponentsSpawnBuffer.TryGetValue(slimBlock.CubeGrid, out componentsToSpawnFromBuffer))
+                {
+                    foreach (var newComponents in componentsToSpawn)
+                    {
+                        int count;
+                        if (componentsToSpawnFromBuffer.TryGetValue(newComponents.Key, out count))
+                        {
+                            componentsToSpawnFromBuffer[newComponents.Key] = count + newComponents.Value;
+                        }
+                        else
+                        {
+                            componentsToSpawnFromBuffer[newComponents.Key] = newComponents.Value;
+                        }
+                    }
+                }
+                else
+                {
+                    ComponentsSpawnBuffer[slimBlock.CubeGrid] = componentsToSpawn;
+                }
             }
         }
 
-        private static void CheckPlaceAndSpawnItems(Dictionary<MyDefinitionId, int> componentsToSpawn, MySlimBlock slimBlock, Vector3D blockPos)
+        public static void CheckPlaceAndSpawnItems(Dictionary<MyDefinitionId, int> componentsToSpawn, Vector3D gridPos)
         {
             try
             {
@@ -111,17 +131,12 @@ public class LootProcessor
                 
                 
                 MyPhysicsComponentBase motionInheritedFrom = null;
-                var cubeGrid = slimBlock.CubeGrid;
-                if (cubeGrid != null && !cubeGrid.Closed && !cubeGrid.MarkedForClose)
-                {
-                    motionInheritedFrom = cubeGrid.Physics;
-                }
                 
                 for (var index = 0; index < itemsToSpawn.Count; index++)
                 {
                     var item = itemsToSpawn[index];
                     Thread.Sleep(MyUtils.GetRandomInt(0, 32));
-                    var boundingSphere = new BoundingSphere(blockPos, 25);
+                    var boundingSphere = new BoundingSphere(gridPos, 75);
                     int i = 0;
                     Vector3D? pos = null;
                     while (i < 20 && !pos.HasValue)
@@ -152,16 +167,7 @@ public class LootProcessor
                     {
                         try
                         {
-                            MyFloatingObjects.Spawn(item, pos.Value, Vector3D.Forward, Vector3D.Up, motionInheritedFrom,
-                                entity =>
-                                {
-                                    // entity.Physics.RigidBody.SetCollisionFilterInfo(HkGroupFilter.CalcFilterInfo(31, 0, 0, 0));
-                                    // MyPhysics.RefreshCollisionFilter((MyPhysicsBody)entity.Physics);
-                                    //
-                                    // ((MyPhysicsBody)entity.Physics).HavokWorld.RemoveRigidBody(entity.Physics.RigidBody);
-                                    // entity.Physics.RigidBody.Dispose();
-                                    // entity.RaisePhysicsChanged();
-                                });
+                            MyFloatingObjects.Spawn(item, pos.Value, Vector3D.Forward, Vector3D.Up);
                         }
                         catch (Exception e)
                         {
