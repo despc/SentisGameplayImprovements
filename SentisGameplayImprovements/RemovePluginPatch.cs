@@ -51,6 +51,20 @@ namespace SentisGameplayImprovements
 
                     foreach (var myPlayer in players)
                     {
+                        if (myPlayer == null)
+                        {
+                            continue;
+                        }
+                        if (grid == null)
+                        {
+                            break;
+                        }
+                        
+                        if (grid.PositionComp == null)
+                        {
+                            break;
+                        }
+                        
                         if (Vector3D.Distance(grid.PositionComp.GetPosition(), myPlayer.GetPosition()) > 10000)
                         {
                             continue;
