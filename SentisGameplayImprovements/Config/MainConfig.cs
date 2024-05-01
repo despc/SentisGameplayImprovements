@@ -86,6 +86,7 @@ namespace SentisGameplayImprovements
         private bool _customFloatingObjectsCleanup = false;
         private int _floatingObjectsLifetime = 5;
         private bool _connectorDestroyInsteadThrow = false;
+        private int _maxFloatingObjects = 500;
         
         [DisplayTab(Name = "Online Reward Enabled", GroupName = "Online Reward", Tab = "Online Reward", Order = 0, Description = "Online Reward Enabled")]
         public bool OnlineRewardEnabled
@@ -385,6 +386,13 @@ namespace SentisGameplayImprovements
         {
             get => _floatingObjectsLifetime;
             set => SetValue(ref _floatingObjectsLifetime, value);
+        }
+        
+        [DisplayTab(Name = "Max floating objects", GroupName = "Loot system", Tab = "Loot system", Order = 5, Description = "Max floating objects")]
+        public int MaxFloatingObjects
+        {
+            get => _maxFloatingObjects;
+            set => SetValue(ref _maxFloatingObjects, value);
         }
         
         [DisplayTab(Name = "Connector destroy instead throw", GroupName = "Loot system", Tab = "Loot system", Order = 1, Description = "Connector destroy instead throw (only ores and ingots)")]

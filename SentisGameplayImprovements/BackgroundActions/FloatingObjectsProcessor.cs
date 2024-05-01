@@ -1,10 +1,12 @@
 ﻿using System;
+using System.Collections.Generic;
 using NLog;
+using Sandbox.Game.Entities;
 using Sandbox.Game.World;
 using Sandbox.ModAPI;
 using SentisGameplayImprovements.AllGridsActions;
 using SentisGameplayImprovements.Loot;
-using VRage.Utils;
+using VRage.Library.Utils;
 
 namespace SentisGameplayImprovements.BackgroundActions
 {
@@ -38,6 +40,41 @@ namespace SentisGameplayImprovements.BackgroundActions
 
             try
             {
+                var currentFloatingObjectsCount = EntitiesObserver.MyFloatingObjects.Count;
+                var maxFloatingObjects = SentisGameplayImprovementsPlugin.Config.MaxFloatingObjects;
+                if (currentFloatingObjectsCount > maxFloatingObjects)
+                {
+                    var delta = (currentFloatingObjectsCount - maxFloatingObjects) * 2;
+                    var listObj = new List<MyFloatingObject>(EntitiesObserver.MyFloatingObjects.Keys);
+                    while (delta > 0)
+                    {
+                        delta--;
+                        if (listObj.Count == 0)
+                        {
+                            break;
+                        }
+                        var myFloatingObject = listObj[MyRandom.Instance.Next(0, listObj.Count)];
+                        if (myFloatingObject == null)
+                        {
+                            break;
+                        }
+                        MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                        {
+                            try
+                            {
+                                if (myFloatingObject.Closed || myFloatingObject.MarkedForClose)
+                                {
+                                    return;
+                                }
+                                myFloatingObject.Close();
+                            }
+                            catch (Exception e)
+                            {
+                                Log.Error(e);
+                            }
+                        }, StartAt: MySession.Static.GameplayFrameCounter + MyRandom.Instance.Next(1, 30));
+                    }
+                }
                 foreach (var entry in EntitiesObserver.MyFloatingObjects)
                 {
                     var spawnTime = entry.Value;
@@ -61,7 +98,7 @@ namespace SentisGameplayImprovements.BackgroundActions
                             {
                                 Log.Error(e);
                             }
-                        }, StartAt: MySession.Static.GameplayFrameCounter + MyUtils.GetRandomInt(10, 300));
+                        }, StartAt: MySession.Static.GameplayFrameCounter + MyRandom.Instance.Next(10, 300));
                     }
                 }
             }
