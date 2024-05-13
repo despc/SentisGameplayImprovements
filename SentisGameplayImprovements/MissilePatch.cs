@@ -66,14 +66,6 @@ namespace SentisGameplayImprovements
                     BindingFlags.Static | BindingFlags.Instance | BindingFlags.NonPublic));
             
             
-            
-            var CalculateStoredExplosiveDamageMethod = typeof(MyCubeBlock)
-                .GetMethod("CalculateStoredExplosiveDamage",
-                    BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
-            ctx.GetPattern(CalculateStoredExplosiveDamageMethod).Prefixes.Add(
-                typeof(MissilePatch).GetMethod(nameof(CalculateStoredExplosiveDamageMethodPatched),
-                    BindingFlags.Static | BindingFlags.Instance | BindingFlags.NonPublic));
-            
             //Подсмотрено в DePatch
             ctx.Prefix(typeof(MyExplosionInfo), "get_AffectVoxels", typeof(MissilePatch), nameof(AffectVoxelsPatch));
         }
@@ -197,32 +189,6 @@ namespace SentisGameplayImprovements
             
         }
 
-        private static bool CalculateStoredExplosiveDamageMethodPatched(MyCubeBlock __instance, 
-            List<MyCubeBlock.StoredExplosive> storedExplosives, ref float __result)
-        {
-            if (!SentisGameplayImprovementsPlugin.Config.ExplosionTweaks)
-            {
-                return true;
-            }
-            
-            try
-            {
-                var m_detonationData = __instance.easyGetField("m_detonationData", typeof(MyCubeBlock));
-                float ExplosionDamagePerLiter = (float) m_detonationData.easyGetField("ExplosionDamagePerLiter");
-                float ExplosionDamageMax = 50000;
-                float val2 = 0.0f;
-                foreach (MyCubeBlock.StoredExplosive storedExplosive in storedExplosives)
-                {
-                    val2 += storedExplosive.Volume * 1000f * ExplosionDamagePerLiter;
-                }
-                __result = Math.Min(ExplosionDamageMax, val2);
-            }
-            catch (Exception e)
-            {
-                Log.Error(e);
-            }
-            return false;
-        }
 
         private static bool ApplyVolumetricExplosionPatched(ref MyExplosionInfo m_explosionInfo,
             List<MyEntity> entities, ref bool __result)
@@ -616,7 +582,7 @@ namespace SentisGameplayImprovements
 
                 if (myEntity is MyFloatingObject)
                 {
-                    ((MyFloatingObject) myEntity).DoDamage(99999, MyDamageType.Explosion, true, attackerId: attackerId);
+                    ((MyFloatingObject) myEntity).DoDamage(99999, MyDamageType.Explosion, true, attackerId: attackerId, null);
                 }
                 
                 if ("dShield".Equals(myEntity.DisplayName))

@@ -32,6 +32,7 @@ namespace SentisGameplayImprovements
         private String _ignoreCleanupSubtypes = "Cargo";
         private String _overrideModIds = "";
         private int _disableAnyDamageAfterStartTime = 120;
+        private String _pathToGarage = "C:\\torch-server\\GARAGE";
         
         //Tweaks
         private bool _autoRenameGrids = false;
@@ -401,5 +402,8 @@ namespace SentisGameplayImprovements
             get => _connectorDestroyInsteadThrow;
             set => SetValue(ref _connectorDestroyInsteadThrow, value);
         }
+        [DisplayTab(Name = "Path to Garage", GroupName = "Other", Tab = "Other", Order = 0, Description = "Path to Garage")]
+        public String PathToGarage { get => _pathToGarage; set => SetValue(ref _pathToGarage, value); }
+
     }
 }

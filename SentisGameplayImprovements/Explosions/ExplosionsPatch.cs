@@ -126,7 +126,7 @@ namespace SentisGameplayImprovements
                     || acceleration.Y > SentisGameplayImprovementsPlugin.Config.AccelerationToDamage
                     || acceleration.Z > SentisGameplayImprovementsPlugin.Config.AccelerationToDamage)
                 {
-                    __instance.DoDamage(999, MyDamageType.Explosion, true, 0);
+                    __instance.DoDamage(999, MyDamageType.Explosion, true, 0, null);
                     return false;
                 }
             }

@@ -73,6 +73,7 @@ namespace SentisGameplayImprovements
             {
                 _backgroundActionsProcessor.OnUnloading();
                 DelayedProcessor.OnUnloading();
+                Communication.UnregisterHandlers();
             }
             else
             {
@@ -83,6 +84,7 @@ namespace SentisGameplayImprovements
                 DamagePatch.Init();
                 DelayedProcessor.OnLoaded();
                 InitShieldApi();
+                Communication.RegisterHandlers();
             }
         }
 

@@ -29,6 +29,7 @@ namespace SentisGameplayImprovements
     {
         public static readonly Logger Log = LogManager.GetCurrentClassLogger();
         public static Dictionary<long, GridVoxelContactInfo> contactInfo = new Dictionary<long, GridVoxelContactInfo>();
+        public static HashSet<long> ProtectedChars = new HashSet<long>();
         private static bool _init;
 
         public static void Init()
@@ -53,6 +54,16 @@ namespace SentisGameplayImprovements
 
         private static void DoProcessDamage(object target, ref MyDamageInformation damage)
         {
+            IMyCharacter character = target as IMyCharacter;
+            if (character != null)
+            {
+                if (ProtectedChars.Contains(character.EntityId))
+                {
+                    damage.Amount = 0;
+                    return;
+                }
+            }
+            
             if (MySandboxGame.Static.SimulationFrameCounter / 60 <
                 (ulong)SentisGameplayImprovementsPlugin.Config.DisableAnyDamageAfterStartTime)
             {

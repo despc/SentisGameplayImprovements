@@ -9,6 +9,7 @@ using Sandbox.Game.World;
 using Sandbox.ModAPI;
 using Torch.Managers.PatchManager;
 using VRage.Game.Definitions.Reputation;
+using VRage.Game.ModAPI;
 using VRage.Game.ObjectBuilders.Definitions.Reputation;
 using VRage.Utils;
 
@@ -74,7 +75,7 @@ namespace SentisGameplayImprovements
                 {
                     int reputationDamageDelta = GetReputationDamageDelta(repDamageType, __instance, true);
                     __instance.AddFactionPlayerReputation(playerIdentityId, playerFaction1.FactionId,
-                        reputationDamageDelta, false);
+                        reputationDamageDelta, ReputationChangeReason.Mod, false);
                 }
                 else
                 {
@@ -86,7 +87,7 @@ namespace SentisGameplayImprovements
                         {
                             int reputationDamageDeltaAtr = GetReputationDamageDelta(repDamageType, __instance, false);
                             __instance.AddFactionPlayerReputation(playerIdentityId, HarkonnenFaction.FactionId,
-                                reputationDamageDeltaAtr, true);
+                                reputationDamageDeltaAtr, ReputationChangeReason.Mod, true);
                             //__instance.SetReputationBetweenFactions();AddFactionPlayerReputation(playerIdentityId, playerFaction2.FactionId, -reputationDamageDelta, false);
                         }
 
@@ -94,7 +95,7 @@ namespace SentisGameplayImprovements
                         {
                             int reputationDamageDeltaHrkn = GetReputationDamageDelta(repDamageType, __instance, false);
                             __instance.AddFactionPlayerReputation(playerIdentityId, AtreidesFaction.FactionId,
-                                reputationDamageDeltaHrkn, true);
+                                reputationDamageDeltaHrkn, ReputationChangeReason.Mod, true);
                             //__instance.SetReputationBetweenFactions();AddFactionPlayerReputation(playerIdentityId, playerFaction2.FactionId, -reputationDamageDelta, false);
                         }
                     }
@@ -102,11 +103,11 @@ namespace SentisGameplayImprovements
                     int reputationDamageDelta =
                         GetReputationDamageDelta(repDamageType, __instance, playerFaction1 == attackedFaction);
                     __instance.AddFactionPlayerReputation(playerIdentityId, attackedFaction.FactionId,
-                        -reputationDamageDelta, false);
+                        -reputationDamageDelta, ReputationChangeReason.Mod, false);
                     if (playerFaction1 == null || attackedFaction == playerFaction1)
                         return;
                     __instance.AddFactionPlayerReputation(playerIdentityId, playerFaction1.FactionId,
-                        reputationDamageDelta, false);
+                        reputationDamageDelta, ReputationChangeReason.Mod, false);
                 }
             }
         }
