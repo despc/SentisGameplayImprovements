@@ -32,7 +32,7 @@ namespace SentisGameplayImprovements
             });
         }
 
-        private static void FixGroups(List<MyCubeGrid> groups)
+        public static void FixGroups(List<MyCubeGrid> groups)
         {
             FixGroup(groups);
         }

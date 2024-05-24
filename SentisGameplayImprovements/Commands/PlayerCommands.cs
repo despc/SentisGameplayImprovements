@@ -5,16 +5,16 @@ using NLog;
 using Sandbox.Engine.Multiplayer;
 using Sandbox.Engine.Physics;
 using Sandbox.Game.Entities;
-using Sandbox.Game.World;
 using Sandbox.ModAPI;
 using SentisGameplayImprovements.AllGridsActions;
 using SentisGameplayImprovements.BackgroundActions;
+using SentisGameplayImprovements.DelayedLogic;
 using Torch.Commands;
 using Torch.Commands.Permissions;
 using VRage.Game;
 using VRage.Game.ModAPI;
+using VRage.Library.Utils;
 using VRage.ModAPI;
-using VRage.Network;
 using VRageMath;
 
 namespace SentisGameplayImprovements
@@ -136,6 +136,8 @@ namespace SentisGameplayImprovements
     public class ConvertCommands : CommandModule
     {
         public static readonly Logger Log = LogManager.GetCurrentClassLogger();
+        public static int ConvertCooldownSec = 30;
+        public static Dictionary<ulong, DateTime> CooldownConvert = new Dictionary<ulong, DateTime>();
         
         [Command("convert", ".", null)]
         [Permission(MyPromoteLevel.None)]
@@ -144,7 +146,19 @@ namespace SentisGameplayImprovements
             try
             {
                 var player = Context.Player;
-                
+                var playerSteamUserId = Context.Player.SteamUserId;
+                var now = DateTime.Now;
+                if (CooldownConvert.TryGetValue(playerSteamUserId, out DateTime lastCall))
+                {
+                    var nextAvailableDate = lastCall.AddSeconds(ConvertCooldownSec);
+                    if (nextAvailableDate > now)
+                    {
+                        Context.Respond($"try again after {((int)(nextAvailableDate - now).TotalSeconds)} sec", (string) null,
+                            (string) null);
+                        return;
+                    }
+                }
+                CooldownConvert[Context.Player.SteamUserId] = now; 
                 if (!PlayerUtils.IsAdmin(player) && !SentisGameplayImprovementsPlugin.Config.AllowPlayersUseConvertCommands)
                 {
                     Context?.Respond("This command only for admins");
@@ -209,6 +223,19 @@ namespace SentisGameplayImprovements
         public void ConvertToStatic(string gridName = "")
         {
             var player = Context.Player;
+            var playerSteamUserId = Context.Player.SteamUserId;
+            var now = DateTime.Now;
+            if (ConvertCommands.CooldownConvert.TryGetValue(playerSteamUserId, out DateTime lastCall))
+            {
+                var nextAvailableDate = lastCall.AddSeconds(ConvertCommands.ConvertCooldownSec);
+                if (nextAvailableDate > now)
+                {
+                    Context.Respond($"try again after {((int)(nextAvailableDate - now).TotalSeconds)} sec", (string) null,
+                        (string) null);
+                    return;
+                }
+            }
+            ConvertCommands.CooldownConvert[Context.Player.SteamUserId] = now; 
             if (!PlayerUtils.IsAdmin(player) && !SentisGameplayImprovementsPlugin.Config.AllowPlayersUseConvertCommands)
             {
                 Context?.Respond("This command only for admins");
@@ -280,6 +307,19 @@ namespace SentisGameplayImprovements
         public void ConvertToDynamic(string gridName = "")
         {
             var player = Context.Player;
+            var playerSteamUserId = Context.Player.SteamUserId;
+            var now = DateTime.Now;
+            if (ConvertCommands.CooldownConvert.TryGetValue(playerSteamUserId, out DateTime lastCall))
+            {
+                var nextAvailableDate = lastCall.AddSeconds(ConvertCommands.ConvertCooldownSec);
+                if (nextAvailableDate > now)
+                {
+                    Context.Respond($"try again after {((int)(nextAvailableDate - now).TotalSeconds)} sec", (string) null,
+                        (string) null);
+                    return;
+                }
+            }
+            ConvertCommands.CooldownConvert[Context.Player.SteamUserId] = now; 
             if (!PlayerUtils.IsAdmin(player) && !SentisGameplayImprovementsPlugin.Config.AllowPlayersUseConvertCommands)
             {
                 Context?.Respond("This command only for admins");
@@ -362,10 +402,22 @@ namespace SentisGameplayImprovements
                 try
                 {
                     MyMultiplayer.RaiseEvent(grid, x => x.ConvertToStatic);
-                    foreach (var player in MySession.Static.Players.GetOnlinePlayers())
-                    {
-                        MyMultiplayer.RaiseEvent(grid, x => x.ConvertToStatic, new EndpointId(player.Id.SteamId));
-                    }
+                    DelayedProcessor.Instance.AddDelayedAction(
+                        DateTime.Now.AddMilliseconds(MyRandom.Instance.Next(300, 1000)), () =>
+                        {
+                            MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                            {
+                                try
+                                {
+                                    List<MyCubeGrid> groupNodes =
+                                        MyCubeGridGroups.Static.GetGroups(GridLinkTypeEnum.Logical).GetGroupNodes(grid);
+                                    FixShipLogic.FixGroups(groupNodes);
+                                }
+                                catch
+                                {
+                                }
+                            });
+                        });
                 }
                 catch (Exception ex)
                 {
@@ -402,11 +454,28 @@ namespace SentisGameplayImprovements
 
             return false;
         }
+
         public static bool ConvertToDynamic(MyCubeGrid grid)
         {
             try
             {
                 grid.OnConvertToDynamic();
+                DelayedProcessor.Instance.AddDelayedAction(
+                    DateTime.Now.AddMilliseconds(MyRandom.Instance.Next(300, 1000)), () =>
+                    {
+                        MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                        {
+                            try
+                            {
+                                List<MyCubeGrid> groupNodes =
+                                    MyCubeGridGroups.Static.GetGroups(GridLinkTypeEnum.Logical).GetGroupNodes(grid);
+                                FixShipLogic.FixGroups(groupNodes);
+                            }
+                            catch
+                            {
+                            }
+                        });
+                    });
                 return true;
             }
             catch (Exception e)

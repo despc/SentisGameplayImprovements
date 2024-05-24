@@ -150,7 +150,10 @@ namespace SentisGameplayImprovements
 
             if (cubeGrid.IsStatic)
             {
-                return SentisGameplayImprovementsPlugin.Config.StaticRamming;
+                if (!SentisGameplayImprovementsPlugin.Config.StaticRamming)
+                {
+                    return false;
+                }
             }
 
             if (otherEntity is MyCubeGrid)

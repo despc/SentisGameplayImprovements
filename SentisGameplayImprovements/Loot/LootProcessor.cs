@@ -38,7 +38,7 @@ public class LootProcessor
                 return;
             }
             
-            if (info.Type == MyDamageType.Grind)
+            if (info.Type == MyDamageType.Grind || info.Type == MyDamageType.Deformation)
             {
                 return;
             }

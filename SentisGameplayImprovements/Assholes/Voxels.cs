@@ -2,12 +2,13 @@
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using NLog;
-using NLog.Fluent;
 using Sandbox.Engine.Multiplayer;
+using Sandbox.Game.Entities;
 using Sandbox.Game.GameSystems;
-using Sandbox.Game.World;
 using Sandbox.ModAPI;
-using VRage.Network;
+using SentisGameplayImprovements.DelayedLogic;
+using VRage.Game.ModAPI;
+using VRage.Library.Utils;
 using VRageMath;
 
 namespace SentisGameplayImprovements.Assholes;
@@ -16,12 +17,13 @@ public class Voxels
 {
     public static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-    public static ConcurrentDictionary<long,long> StuckGrids = new ConcurrentDictionary<long, long>();
+    public static ConcurrentDictionary<long, long> StuckGrids = new ConcurrentDictionary<long, long>();
     public static Random _random = new Random();
-    
+
     public static void ProcessVoxelsContacts()
     {
-        foreach (var gridVoxelContactInfo in new Dictionary<long, DamagePatch.GridVoxelContactInfo>(DamagePatch.contactInfo))
+        foreach (var gridVoxelContactInfo in new Dictionary<long, DamagePatch.GridVoxelContactInfo>(DamagePatch
+                     .contactInfo))
         {
             var entityId = gridVoxelContactInfo.Key;
             var cubeGrid = gridVoxelContactInfo.Value.MyCubeGrid;
@@ -59,11 +61,23 @@ public class Voxels
                             {
                                 MyMultiplayer.RaiseEvent(cubeGrid,
                                     x => x.ConvertToStatic);
-                                foreach (var player in MySession.Static.Players.GetOnlinePlayers())
-                                {
-                                    MyMultiplayer.RaiseEvent(cubeGrid,
-                                        x => x.ConvertToStatic, new EndpointId(player.Id.SteamId));
-                                }
+                                DelayedProcessor.Instance.AddDelayedAction(
+                                    DateTime.Now.AddMilliseconds(MyRandom.Instance.Next(300, 1000)), () =>
+                                    {
+                                        MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                                        {
+                                            try
+                                            {
+                                                List<MyCubeGrid> groupNodes =
+                                                    MyCubeGridGroups.Static.GetGroups(GridLinkTypeEnum.Logical)
+                                                        .GetGroupNodes(cubeGrid);
+                                                FixShipLogic.FixGroups(groupNodes);
+                                            }
+                                            catch
+                                            {
+                                            }
+                                        });
+                                    });
                             }
                             catch (Exception ex)
                             {
