@@ -574,7 +574,11 @@ namespace SentisGameplayImprovements
                     var myCharacter = ((MyCharacter) myEntity);
                     if (myCharacter.IsUsing is MyCockpit)
                     {
-                        myCharacter.DoDamage(((MyCharacter) myEntity).Integrity - 3, MyDamageType.Explosion, true, attackerId: attackerId);
+                        var charDamage = ((MyCharacter) myEntity).Integrity - 25;
+                        if (charDamage > 0)
+                        {
+                            myCharacter.DoDamage(charDamage, MyDamageType.Explosion, true, attackerId: attackerId);
+                        }
                         continue;
                     }
                     myCharacter.DoDamage(99999, MyDamageType.Explosion, true, attackerId: attackerId);
