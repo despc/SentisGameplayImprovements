@@ -1,15 +1,20 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
+using System.Threading;
 using NLog;
+using Sandbox.Engine.Multiplayer;
 using Sandbox.Game;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Blocks;
 using Sandbox.Game.Entities.Cube;
 using Sandbox.ModAPI;
+using SentisGameplayImprovements.DelayedLogic;
 using SpaceEngineers.Game.Entities.Blocks;
 using SpaceEngineers.Game.Entities.Blocks.SafeZone;
 using VRage.Game;
 using VRage.Game.ModAPI;
+using VRage.Library.Utils;
 using VRageMath;
 
 namespace SentisGameplayImprovements
@@ -17,44 +22,131 @@ namespace SentisGameplayImprovements
     public class PcuLimiter
     {
         public static readonly Logger Log = LogManager.GetCurrentClassLogger();
+        public static ConcurrentDictionary<MyCubeGrid, int> overlimitGrids =
+            new ConcurrentDictionary<MyCubeGrid, int>();
         
         public void CheckGrid(MyCubeGrid grid)
         {
             if (grid.IsStatic || IsLimitNotReached(grid)) return;
-            MyAPIGateway.Utilities.InvokeOnGameThread(() => { LimitReached(grid); });
+            LimitReached(grid);
         }
 
         public static void LimitReached(MyCubeGrid cube)
         {
-            List<IMySlimBlock> blocks = GridUtils.GetBlocks<IMyFunctionalBlock>((IMyCubeGrid)cube);
-            foreach (var mySlimBlock in blocks)
-            {
-                if (noDisableBlock(mySlimBlock))
-                {
-                    continue;
-                }
-
-                ((IMyFunctionalBlock)mySlimBlock.FatBlock).Enabled = false;
-            }
-
-            var subGrids = GridUtils.GetSubGrids((IMyCubeGrid)cube,SentisGameplayImprovementsPlugin.Config.IncludeConnectedGrids);
+            var subGrids = GridUtils.GetSubGrids(cube,SentisGameplayImprovementsPlugin.Config.IncludeConnectedGrids);
+            MyCubeGrid largestGrid = cube;
             foreach (var myCubeGrid in subGrids)
             {
-                List<IMySlimBlock> subGridBlocks = GridUtils.GetBlocks<IMyFunctionalBlock>(myCubeGrid);
-                foreach (var mySlimBlock in subGridBlocks)
+                if (largestGrid.BlocksPCU < ((MyCubeGrid)myCubeGrid).BlocksPCU)
                 {
-                    if (noDisableBlock(mySlimBlock))
-                    {
-                        continue;
-                    }
-
-                    ((IMyFunctionalBlock)mySlimBlock.FatBlock).Enabled = false;
+                    largestGrid = (MyCubeGrid)myCubeGrid;
                 }
+                List<IMySlimBlock> subGridBlocks = GridUtils.GetBlocks<IMyFunctionalBlock>(myCubeGrid);
+                MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                {
+                    try
+                    {
+                        foreach (var mySlimBlock in subGridBlocks)
+                        {
+                            if (noDisableBlock(mySlimBlock))
+                            {
+                                continue;
+                            }
+
+                            ((IMyFunctionalBlock)mySlimBlock.FatBlock).Enabled = false;
+                        }
+                    }
+                    catch
+                    {
+                    }
+                });
+                
+            }
+            
+            cube.RaiseGridChanged();
+            
+            var count = 0;
+            if (overlimitGrids.TryGetValue(cube, out count))
+            {
+                count = count + 1;
             }
 
-            cube.RaiseGridChanged();
+            if (count > 5)
+            {
+                
+                overlimitGrids.Remove(largestGrid);
+                var ownerId = PlayerUtils.GetOwner(largestGrid);
+                var playerIdentity = PlayerUtils.GetPlayerIdentity(ownerId);
+                var playerName = playerIdentity == null ? "---" : playerIdentity.DisplayName;
+                Log.Error(
+                    $"Перелимит на гриде {largestGrid.DisplayName} игрока {playerName} конвертим в статику");
+                foreach (var player in PlayerUtils.GetAllPlayersInRadius(largestGrid.PositionComp.GetPosition(), 10000))
+                {
+                    ChatUtils.SendTo(player.IdentityId,
+                        $"Структура {largestGrid.DisplayName} игрока {playerName} конвертирована в статичную по причине перелимита PCU");
+                    MyVisualScriptLogicProvider.ShowNotification(
+                        $"Структура {largestGrid.DisplayName} игрока {playerName} конвертирована в статичную по причине перелимита PCU",
+                        5000,
+                        "Red", player.IdentityId);
+                }
+
+                MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                {
+                    try
+                    {
+                        ConvertToStatic(largestGrid);
+                    }
+                    catch
+                    {
+                    }
+                });
+                Thread.Sleep(2000);
+            }
+            else
+            {
+                overlimitGrids[cube] = count;
+            }
         }
 
+        public static bool ConvertToStatic(MyCubeGrid grid)
+        {
+            try
+            {
+                grid.Physics?.SetSpeeds(Vector3.Zero, Vector3.Zero);
+                grid.ConvertToStatic();
+                try
+                {
+                    MyMultiplayer.RaiseEvent(grid, x => x.ConvertToStatic);
+                    DelayedProcessor.Instance.AddDelayedAction(
+                        DateTime.Now.AddMilliseconds(MyRandom.Instance.Next(300, 1000)), () =>
+                        {
+                            MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                            {
+                                try
+                                {
+                                    List<MyCubeGrid> groupNodes =
+                                        MyCubeGridGroups.Static.GetGroups(GridLinkTypeEnum.Logical).GetGroupNodes(grid);
+                                    FixShipLogic.FixGroups(groupNodes);
+                                }
+                                catch
+                                {
+                                }
+                            });
+                        });
+                }
+                catch (Exception ex)
+                {
+                    Log.Error(ex, "()Exception in RaiseEvent.");
+                }
+
+                return true;
+            }
+            catch (Exception e)
+            {
+                return false;
+            }
+        }
+        
         private static bool noDisableBlock(IMySlimBlock mySlimBlock)
         {
             return mySlimBlock.FatBlock is MyReactor ||
