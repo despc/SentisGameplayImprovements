@@ -94,7 +94,12 @@ namespace SentisGameplayImprovements
       {
         FixShipRequest request = MyAPIGateway.Utilities.SerializeFromBinary<FixShipRequest>(data);
         var requestGridId = request.gridId;
-        var sender = PlayerUtils.GetPlayer(plyId).IdentityId;
+        var myPlayer = PlayerUtils.GetPlayer(plyId);
+        if (myPlayer == null)
+        {
+          return;
+        }
+        var sender = myPlayer.IdentityId;
         if (sender == 0)
         {
           return;

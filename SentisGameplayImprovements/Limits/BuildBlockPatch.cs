@@ -49,7 +49,11 @@ namespace SentisGameplayImprovements
             {
                 if (__instance != null)
                 {
-                    CheckBeacon(__instance);
+                    try
+                    {
+                        CheckBeacon(__instance);
+                    }
+                    catch (InvalidOperationException ignore){}
                 }
             });
             if (!SentisGameplayImprovementsPlugin.Config.EnabledPcuLimiter)
