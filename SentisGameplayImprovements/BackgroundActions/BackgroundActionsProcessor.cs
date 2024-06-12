@@ -16,7 +16,6 @@ namespace SentisGameplayImprovements.BackgroundActions
         private GridAutoRenamer _autoRenamer = new GridAutoRenamer();
         private OnlineReward _onlineReward = new OnlineReward();
         private PvEGridChecker _pvEGridChecker = new PvEGridChecker();
-        private NpcStationsPowerFix _npcStationsPowerFix = new NpcStationsPowerFix();
 
         public static readonly Logger Log = LogManager.GetCurrentClassLogger();
         private int counter = 0;
@@ -96,13 +95,7 @@ namespace SentisGameplayImprovements.BackgroundActions
                     {
                         counter++;
                         await Task.Delay(30000);
-
                         await Task.Run(CheckAllGrids);
-                        if (counter % 5 == 0)
-                        {
-                            await Task.Run(() => _npcStationsPowerFix.RefillPowerStations());
-                        }
-
                         await Task.Run(() =>
                         {
                             try

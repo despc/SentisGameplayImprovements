@@ -37,7 +37,6 @@
       <Compile Include="BackgroundActions\FallInVoxelDetector.cs" />
       <Compile Include="BackgroundActions\FloatingObjectsProcessor.cs" />
       <Compile Include="BackgroundActions\GridAutoRenamer.cs" />
-      <Compile Include="BackgroundActions\NpcStationsPowerFix.cs" />
       <Compile Include="BackgroundActions\OnlineReward.cs" />
       <Compile Include="BackgroundActions\PvEGridChecker.cs" />
       <Compile Include="Api\ShieldApi.cs" />
