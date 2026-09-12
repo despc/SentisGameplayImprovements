@@ -17,6 +17,10 @@ namespace SentisGameplayImprovements
 
         internal static void PatchImpl(PatchContext ctx)
         {
+            // Each registration is independent: a target removed by a game update only
+            // disables its own contract tweak instead of the whole shim.
+            TryRegister(ctx, nameof(PatchGetMoneyRewardForAcquisitionContract), () =>
+            {
             var MethodGetMoneyRewardForAcquisitionContract = typeof(MyContractTypeAcquisitionStrategy).GetMethod(
                 "GetMoneyRewardForAcquisitionContract",
                 BindingFlags.Instance | BindingFlags.NonPublic);
@@ -24,14 +28,20 @@ namespace SentisGameplayImprovements
             ctx.GetPattern(MethodGetMoneyRewardForAcquisitionContract).Suffixes.Add(
                 typeof(ContractPricePatch).GetMethod(nameof(PatchGetMoneyRewardForAcquisitionContract),
                     BindingFlags.Static | BindingFlags.Instance | BindingFlags.NonPublic));
+            }, "GetMoneyRewardForAcquisitionContract");
 
+            TryRegister(ctx, nameof(PatchGetMoneyReward_Escort), () =>
+            {
             var MethodGetMoneyReward_Escort = typeof(MyContractTypeEscortStrategy).GetMethod("GetMoneyReward_Escort",
                 BindingFlags.Instance | BindingFlags.NonPublic);
 
             ctx.GetPattern(MethodGetMoneyReward_Escort).Suffixes.Add(
                 typeof(ContractPricePatch).GetMethod(nameof(PatchGetMoneyReward_Escort),
                     BindingFlags.Static | BindingFlags.Instance | BindingFlags.NonPublic));
+            }, "GetMoneyReward_Escort");
 
+            TryRegister(ctx, nameof(PatchGetMoneyRewardForHaulingContract), () =>
+            {
             var MethodGetMoneyRewardForHaulingContract = typeof(MyContractTypeHaulingStrategy).GetMethod(
                 "GetMoneyRewardForHaulingContract",
                 BindingFlags.Instance | BindingFlags.NonPublic);
@@ -39,7 +49,10 @@ namespace SentisGameplayImprovements
             ctx.GetPattern(MethodGetMoneyRewardForHaulingContract).Suffixes.Add(
                 typeof(ContractPricePatch).GetMethod(nameof(PatchGetMoneyRewardForHaulingContract),
                     BindingFlags.Static | BindingFlags.Instance | BindingFlags.NonPublic));
+            }, "GetMoneyRewardForHaulingContract");
 
+            TryRegister(ctx, nameof(PatchGetMoneyRewardForRepairContract), () =>
+            {
             var MethodGetMoneyRewardForRepairContract = typeof(MyContractTypeRepairStrategy).GetMethod(
                 "GetMoneyRewardForRepairContract",
                 BindingFlags.Instance | BindingFlags.NonPublic);
@@ -47,6 +60,19 @@ namespace SentisGameplayImprovements
             ctx.GetPattern(MethodGetMoneyRewardForRepairContract).Suffixes.Add(
                 typeof(ContractPricePatch).GetMethod(nameof(PatchGetMoneyRewardForRepairContract),
                     BindingFlags.Static | BindingFlags.Instance | BindingFlags.NonPublic));
+            }, "GetMoneyRewardForRepairContract");
+        }
+
+        private static void TryRegister(PatchContext ctx, string suffixName, Action register, string targetName)
+        {
+            try
+            {
+                register();
+            }
+            catch (Exception e)
+            {
+                Log.Warn(e, $"Contract price target '{targetName}' not patchable; suffix '{suffixName}' skipped.");
+            }
         }
 
         private static void PatchGetMoneyRewardForAcquisitionContract(ref long __result, long baseRew, int amount)
