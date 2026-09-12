@@ -42,11 +42,12 @@ namespace SentisGameplayImprovements
 
             TryRegister(ctx, nameof(PatchGetMoneyRewardForHaulingContract), () =>
             {
-            var MethodGetMoneyRewardForHaulingContract = typeof(MyContractTypeHaulingStrategy).GetMethod(
-                "GetMoneyRewardForHaulingContract",
-                BindingFlags.Instance | BindingFlags.NonPublic);
+            // Moved from MyContractTypeHaulingStrategy.GetMoneyRewardForHaulingContract to the base strategy.
+            var MethodGetHaulingMoneyReward = typeof(MyContractTypeBaseStrategy).GetMethod(
+                "GetHaulingMoneyReward",
+                BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
 
-            ctx.GetPattern(MethodGetMoneyRewardForHaulingContract).Suffixes.Add(
+            ctx.GetPattern(MethodGetHaulingMoneyReward).Suffixes.Add(
                 typeof(ContractPricePatch).GetMethod(nameof(PatchGetMoneyRewardForHaulingContract),
                     BindingFlags.Static | BindingFlags.Instance | BindingFlags.NonPublic));
             }, "GetMoneyRewardForHaulingContract");
@@ -101,7 +102,8 @@ namespace SentisGameplayImprovements
             }
         }
 
-        private static void PatchGetMoneyRewardForHaulingContract(ref long __result, long baseRew, double distance,
+        // Parameter names must match the target: GetHaulingMoneyReward(long baseReward, double distance, int uraniumPrice)
+        private static void PatchGetMoneyRewardForHaulingContract(ref long __result, long baseReward, double distance,
             int uraniumPrice)
         {
             try
@@ -113,7 +115,7 @@ namespace SentisGameplayImprovements
                 }
                 double num1 = distance / JUMP_DRIVE_DISTANCE;
                 double num2 = num1 * (uraniumPrice * (double) AMOUNT_URANIUM_TO_RECHARGE);
-                __result = (long) ((baseRew + baseRew * num1 + num2) *
+                __result = (long) ((baseReward + baseReward * num1 + num2) *
                                    configContractHaulingtMultiplier);
             }
             catch (Exception e)
