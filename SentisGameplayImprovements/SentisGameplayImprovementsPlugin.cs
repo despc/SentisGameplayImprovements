@@ -74,12 +74,19 @@ namespace SentisGameplayImprovements
                 _backgroundActionsProcessor.OnUnloading();
                 DelayedProcessor.OnUnloading();
                 Communication.UnregisterHandlers();
+                MyEntities.OnEntityAdd -= EntitiesObserver.MyEntitiesOnOnEntityAdd;
+                MyEntities.OnEntityRemove -= EntitiesObserver.MyEntitiesOnOnEntityRemove;
             }
             else
             {
                 if (newState != TorchSessionState.Loaded)
                     return;
                 _backgroundActionsProcessor.OnLoaded();
+                // re-subscribe after any previous session unload (idempotent)
+                MyEntities.OnEntityAdd -= EntitiesObserver.MyEntitiesOnOnEntityAdd;
+                MyEntities.OnEntityAdd += EntitiesObserver.MyEntitiesOnOnEntityAdd;
+                MyEntities.OnEntityRemove -= EntitiesObserver.MyEntitiesOnOnEntityRemove;
+                MyEntities.OnEntityRemove += EntitiesObserver.MyEntitiesOnOnEntityRemove;
                 PvECore.Init();
                 DamagePatch.Init();
                 DelayedProcessor.OnLoaded();

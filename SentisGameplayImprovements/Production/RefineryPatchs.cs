@@ -1,3 +1,4 @@
+﻿using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -30,6 +31,8 @@ namespace SentisGameplayImprovements
         }
 
         private static bool DoUpdateTimerTickPatch(MyRefinery __instance)
+        {
+        try
         {
           __instance.easySetField("m_queueNeedsRebuild", false);
           __instance.ClearQueue(false);
@@ -101,6 +104,15 @@ namespace SentisGameplayImprovements
 
           tmpSortedBp.Clear();
           return false;
+        
+
+
+            }
+                catch (Exception __guard_e)
+                {
+                    Log.Error("DoUpdateTimerTickPatch exception " + __guard_e);
+                    return true;  // fall back to vanilla behavior
+                }
         }
     }
 }

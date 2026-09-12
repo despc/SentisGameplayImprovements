@@ -1,3 +1,4 @@
+﻿using System;
 using System.Reflection;
 using NAPI;
 using NLog;
@@ -58,14 +59,27 @@ namespace SentisGameplayImprovements
         // would make the patched method unrunnable (InvalidProgram) the first time a searchlight updates.
         private static bool UpdateAfterSimulationPatch(object __instance)
         {
+        try
+        {
             if (!SentisGameplayImprovementsPlugin.Config.DisableTurretUpdate)
             {
                 return true;
             }
             return false;
+        
+
+
+            }
+                catch (Exception __guard_e)
+                {
+                    Log.Error("UpdateAfterSimulationPatch exception " + __guard_e);
+                    return true;  // fall back to vanilla behavior
+                }
         }
         
         private static bool DoUpdateTimerTickPatch(MyLargeTurretBase __instance)
+        {
+        try
         {
             if (!SentisGameplayImprovementsPlugin.Config.DisableTurretUpdate)
             {
@@ -99,9 +113,20 @@ namespace SentisGameplayImprovements
             }
 
             return false;
+        
+
+
+            }
+                catch (Exception __guard_e)
+                {
+                    Log.Error("DoUpdateTimerTickPatch exception " + __guard_e);
+                    return true;  // fall back to vanilla behavior
+                }
         }
         
         private static bool DoUpdateTimerTickSlPatch(MySearchlight __instance)
+        {
+        try
         {
             if (!SentisGameplayImprovementsPlugin.Config.DisableTurretUpdate)
             {
@@ -135,6 +160,15 @@ namespace SentisGameplayImprovements
             }
 
             return false;
+        
+
+
+            }
+                catch (Exception __guard_e)
+                {
+                    Log.Error("DoUpdateTimerTickSlPatch exception " + __guard_e);
+                    return true;  // fall back to vanilla behavior
+                }
         }
     }
 }

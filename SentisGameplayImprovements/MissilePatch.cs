@@ -1,4 +1,4 @@
-using System;
+﻿using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -720,11 +720,22 @@ namespace SentisGameplayImprovements
 
         private static bool MyWarheadOnDestroyPatched()
         {
+        try
+        {
             if (!SentisGameplayImprovementsPlugin.Config.ExplosionTweaks)
             {
                 return true;
             }
             return false;
+        
+
+
+            }
+                catch (Exception __guard_e)
+                {
+                    Log.Error("MyWarheadOnDestroyPatched exception " + __guard_e);
+                    return true;  // fall back to vanilla behavior
+                }
         }
 
         private static bool MyWarheadDoDamagePatched(MyWarhead __instance, ref bool __result,

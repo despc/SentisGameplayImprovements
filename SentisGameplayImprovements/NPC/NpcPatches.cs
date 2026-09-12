@@ -1,3 +1,4 @@
+﻿using System;
 using System.Collections.Generic;
 using System.Reflection;
 using NLog;
@@ -32,12 +33,23 @@ namespace SentisGameplayImprovements
             int blocksCount,
             Dictionary<string, int> blocksPerType, ref bool __result)
         {
+        try
+        {
             if (MySession.Static.Players.IdentityIsNpc(ownerID))
             {
                 __result = true;
                 return false;
             }
             return true;
+        
+
+
+            }
+                catch (Exception __guard_e)
+                {
+                    Log.Error("CheckLimitsAndNotifyPatch exception " + __guard_e);
+                    return true;  // fall back to vanilla behavior
+                }
         }
     }
 }
