@@ -5,6 +5,7 @@ using NLog;
 using Sandbox.Game.Entities;
 using VRage.Game.Entity;
 using VRage.Game.ModAPI;
+using SentisGameplayImprovements.Utils;
 
 namespace SentisGameplayImprovements.AllGridsActions
 {
@@ -12,11 +13,11 @@ namespace SentisGameplayImprovements.AllGridsActions
     {
         public static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        public static HashSet<MySafeZone> Safezones = new HashSet<MySafeZone>();
-        public static HashSet<MyCubeGrid> MyCubeGrids = new HashSet<MyCubeGrid>();
+        public static ConcurrentHashSet<MySafeZone> Safezones = new ConcurrentHashSet<MySafeZone>();
+        public static ConcurrentHashSet<MyCubeGrid> MyCubeGrids = new ConcurrentHashSet<MyCubeGrid>();
         public static ConcurrentDictionary<MyFloatingObject, DateTime> MyFloatingObjects = new ConcurrentDictionary<MyFloatingObject, DateTime>();
-        public static HashSet<IMyVoxelMap> VoxelMaps = new HashSet<IMyVoxelMap>();
-        public static HashSet<MyPlanet> Planets = new HashSet<MyPlanet>();
+        public static ConcurrentHashSet<IMyVoxelMap> VoxelMaps = new ConcurrentHashSet<IMyVoxelMap>();
+        public static ConcurrentHashSet<MyPlanet> Planets = new ConcurrentHashSet<MyPlanet>();
 
         public static void MyEntitiesOnOnEntityRemove(MyEntity entity)
         {

@@ -52,7 +52,11 @@ namespace SentisGameplayImprovements
 
         }
 
-        private static bool UpdateAfterSimulationPatch(MyLargeTurretBase __instance)
+        // NOTE: registered on MyLargeTurretBase.UpdateAfterSimulation, MySearchlight.UpdateAfterSimulation
+        // and MyLargeConveyorTurretBase.UpdateBeforeSimulation100. MySearchlight is NOT a
+        // MyLargeTurretBase, so __instance must stay type-agnostic (object): a typed __instance
+        // would make the patched method unrunnable (InvalidProgram) the first time a searchlight updates.
+        private static bool UpdateAfterSimulationPatch(object __instance)
         {
             if (!SentisGameplayImprovementsPlugin.Config.DisableTurretUpdate)
             {
