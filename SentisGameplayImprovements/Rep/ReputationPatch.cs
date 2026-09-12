@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -21,7 +21,9 @@ namespace SentisGameplayImprovements
         public static readonly Logger Log = LogManager.GetCurrentClassLogger();
         private static readonly Random Random = new Random();
 
-        public static void Patch(PatchContext ctx)
+        public static void Patch(PatchContext ctx) => global::SentisOptimisations.PatchGuard.Run("ReputationPatch", ctx, PatchImpl);
+
+        internal static void PatchImpl(PatchContext ctx)
         {
             var MethodDamageFactionPlayerReputation = typeof(MyFactionCollection).GetMethod
             ("DamageFactionPlayerReputation",

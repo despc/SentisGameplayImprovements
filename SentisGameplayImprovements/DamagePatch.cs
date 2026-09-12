@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -77,7 +77,9 @@ namespace SentisGameplayImprovements
 
         
 
-        public static void Patch(PatchContext ctx)
+        public static void Patch(PatchContext ctx) => global::SentisOptimisations.PatchGuard.Run("DamagePatch", ctx, PatchImpl);
+
+        internal static void PatchImpl(PatchContext ctx)
         {
             var MethodPerformDeformation = typeof(MyGridPhysics).GetMethod
                 ("PerformDeformation", BindingFlags.Instance | BindingFlags.NonPublic);

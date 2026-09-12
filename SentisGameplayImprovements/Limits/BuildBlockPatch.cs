@@ -17,7 +17,9 @@ namespace SentisGameplayImprovements
     [PatchShim]
     public static class BuildBlockPatch
     {
-        public static void Patch(PatchContext ctx)
+        public static void Patch(PatchContext ctx) => global::SentisOptimisations.PatchGuard.Run("BuildBlockPatch", ctx, PatchImpl);
+
+        internal static void PatchImpl(PatchContext ctx)
         {
             MethodInfo method = typeof(MyCubeGrid).GetMethod("BuildBlocksRequest",
                 BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);

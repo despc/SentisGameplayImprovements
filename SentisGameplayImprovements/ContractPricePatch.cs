@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Reflection;
 using NLog;
 using Sandbox.Game.World.Generator;
@@ -13,7 +13,9 @@ namespace SentisGameplayImprovements
         private static readonly float AMOUNT_URANIUM_TO_RECHARGE = 3.75f;
         public static readonly Logger Log = LogManager.GetCurrentClassLogger();
         private static Random _random = new Random();
-        public static void Patch(PatchContext ctx)
+        public static void Patch(PatchContext ctx) => global::SentisOptimisations.PatchGuard.Run("ContractPricePatch", ctx, PatchImpl);
+
+        internal static void PatchImpl(PatchContext ctx)
         {
             var MethodGetMoneyRewardForAcquisitionContract = typeof(MyContractTypeAcquisitionStrategy).GetMethod(
                 "GetMoneyRewardForAcquisitionContract",

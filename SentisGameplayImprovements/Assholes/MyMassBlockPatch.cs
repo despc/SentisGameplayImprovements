@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using Sandbox.Definitions;
 using SpaceEngineers.Game.Entities.Blocks;
 using Torch.Managers.PatchManager;
@@ -9,7 +9,9 @@ namespace SentisGameplayImprovements.Assholes
 
     internal static class ArtificialMassBlockPatch
     {
-        public static void Patch(PatchContext ctx)
+        public static void Patch(PatchContext ctx) => global::SentisOptimisations.PatchGuard.Run("ArtificialMassBlockPatch", ctx, PatchImpl);
+
+        internal static void PatchImpl(PatchContext ctx)
         {
             MethodInfo method = typeof(MyVirtualMass).GetMethod("Init",
                 BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic | BindingFlags.DeclaredOnly);

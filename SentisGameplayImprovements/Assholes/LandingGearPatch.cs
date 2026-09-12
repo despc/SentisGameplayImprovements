@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using Havok;
 using Sandbox.Game.Entities;
 using SpaceEngineers.Game.Entities.Blocks;
@@ -12,7 +12,9 @@ namespace SentisGameplayImprovements.Assholes;
 [PatchShim]
 internal static class LandingGearPatch
 {
-    public static void Patch(PatchContext ctx)
+    public static void Patch(PatchContext ctx) => global::SentisOptimisations.PatchGuard.Run("LandingGearPatch", ctx, PatchImpl);
+
+        internal static void PatchImpl(PatchContext ctx)
     {
         MethodInfo method = typeof(MyLandingGear).GetMethod("CanAttachTo",
             BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic |

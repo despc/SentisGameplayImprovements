@@ -19,7 +19,9 @@ namespace SentisGameplayImprovements
     {
         public static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        public static void Patch(PatchContext ctx)
+        public static void Patch(PatchContext ctx) => global::SentisOptimisations.PatchGuard.Run("RemovePluginPatch", ctx, PatchImpl);
+
+        internal static void PatchImpl(PatchContext ctx)
         {
             var Method = typeof(MyBlockLimits).GetMethod("RemoveBlocksBuiltByID",
                 BindingFlags.Static | BindingFlags.Public);

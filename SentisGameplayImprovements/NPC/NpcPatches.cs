@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Reflection;
 using NLog;
 using Sandbox.Game.World;
@@ -11,7 +11,9 @@ namespace SentisGameplayImprovements
     {
         public static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        public static void Patch(PatchContext ctx)
+        public static void Patch(PatchContext ctx) => global::SentisOptimisations.PatchGuard.Run("NpcPatches", ctx, PatchImpl);
+
+        internal static void PatchImpl(PatchContext ctx)
         {
             var MethodCheckLimitsAndNotify = typeof(MySession).GetMethod
                 (nameof(MySession.CheckLimitsAndNotify), BindingFlags.Instance | BindingFlags.Public);

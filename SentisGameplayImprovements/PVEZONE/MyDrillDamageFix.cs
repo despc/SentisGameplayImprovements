@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Reflection;
 using NAPI;
 using Sandbox.Game.Weapons;
@@ -14,7 +14,9 @@ namespace SentisGameplayImprovements.PveZone
     {
         private static FieldInfo drillEntity;
 
-        public static void Patch(PatchContext ctx)
+        public static void Patch(PatchContext ctx) => global::SentisOptimisations.PatchGuard.Run("MyDrillDamageFix", ctx, PatchImpl);
+
+        internal static void PatchImpl(PatchContext ctx)
         {
             drillEntity = typeof(MyDrillBase).easyField("m_drillEntity");
             ctx.Prefix(typeof(MyDrillBase), typeof(MyDrillDamageFix), nameof(TryDrillBlocks));

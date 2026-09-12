@@ -1,11 +1,11 @@
-﻿using System.Reflection;
+using System.Reflection;
 using NAPI;
 using NLog;
 using Sandbox.Game.EntityComponents;
 using Sandbox.Game.Gui;
 using Sandbox.Game.Weapons;
 using SpaceEngineers.Game.Entities.Blocks;
-using SpaceEngineers.Game.Weapons.Guns;
+using SpaceEngineers.Game.Entities.Weapons;
 using Torch.Managers.PatchManager;
 using VRage.ModAPI;
 
@@ -15,7 +15,9 @@ namespace SentisGameplayImprovements
     public static class FixTurretsPatch
     {
         public static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        public static void Patch(PatchContext ctx)
+        public static void Patch(PatchContext ctx) => global::SentisOptimisations.PatchGuard.Run("FixTurretsPatch", ctx, PatchImpl);
+
+        internal static void PatchImpl(PatchContext ctx)
         {
             var methodInfo = typeof(MyLargeTurretBase).GetMethod("DoUpdateTimerTick",BindingFlags.DeclaredOnly
                 | BindingFlags.Instance | BindingFlags.Public);

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Reflection;
 using NLog;
 using Sandbox.Game.Entities.Character.Components;
@@ -11,7 +11,9 @@ namespace SentisGameplayImprovements
     {
         public static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        public static void Patch(PatchContext ctx)
+        public static void Patch(PatchContext ctx) => global::SentisOptimisations.PatchGuard.Run("CharPatch", ctx, PatchImpl);
+
+        internal static void PatchImpl(PatchContext ctx)
         {
             
             var MethodInit = typeof(MyCharacterOxygenComponent).GetMethod("Init",

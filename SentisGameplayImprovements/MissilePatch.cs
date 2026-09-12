@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
@@ -33,7 +33,9 @@ namespace SentisGameplayImprovements
     {
         public static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        public static void Patch(PatchContext ctx)
+        public static void Patch(PatchContext ctx) => global::SentisOptimisations.PatchGuard.Run("MissilePatch", ctx, PatchImpl);
+
+        internal static void PatchImpl(PatchContext ctx)
         {
             var MyWarheadExplodeMethod = typeof(MyWarhead).GetMethod(
                 nameof(MyWarhead.Explode), BindingFlags.Instance | BindingFlags.Public);
@@ -58,9 +60,14 @@ namespace SentisGameplayImprovements
             
             
             var MyExplosionType = typeof(MyVoxelBase).Assembly.GetType("Sandbox.Game.MyExplosion");
+            // There are two overloads now; pick the (ref MyExplosionInfo, List<MyEntity>, List<MySafeZone>) one.
             var MyExplosionApplyVolumetricExplosion = MyExplosionType
-                .GetMethod("ApplyVolumetricExplosion",
-                    BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public);
+                .GetMethods(BindingFlags.Instance | BindingFlags.NonPublic | BindingFlags.Public)
+                .First(m => m.Name == "ApplyVolumetricExplosion"
+                            && m.GetParameters().Length == 3
+                            && m.GetParameters()[1].ParameterType == typeof(List<MyEntity>)
+                            && m.GetParameters()[2].ParameterType.Name == "List`1"
+                            && m.GetParameters()[2].ParameterType.GetGenericArguments()[0].Name == "MySafeZone");
             ctx.GetPattern(MyExplosionApplyVolumetricExplosion).Prefixes.Add(
                 typeof(MissilePatch).GetMethod(nameof(ApplyVolumetricExplosionPatched),
                     BindingFlags.Static | BindingFlags.Instance | BindingFlags.NonPublic));
@@ -191,7 +198,7 @@ namespace SentisGameplayImprovements
 
 
         private static bool ApplyVolumetricExplosionPatched(ref MyExplosionInfo m_explosionInfo,
-            List<MyEntity> entities, ref bool __result)
+            List<MyEntity> entities)
         {
             if (!SentisGameplayImprovementsPlugin.Config.ExplosionTweaks)
             {
@@ -204,7 +211,7 @@ namespace SentisGameplayImprovements
 
                 foreach (var character in chars)
                 {
-                    if (character is MyCharacter myCharacter && myCharacter.IsUsing is MyCockpit)
+                    if (character is MyCharacter myCharacter && myCharacter.UsingEntity is MyCockpit)
                     {
                         entities.Remove(character);
                     }
@@ -256,7 +263,7 @@ namespace SentisGameplayImprovements
                     }
                 }
                 ApplyVolumetricExplosionOnGrid(damage, ref explosionSphere, 0L, new List<MyEntity>(entitiesSet), 0);
-                __result = true;
+                // original ApplyVolumetricExplosion returns void; returning false skips it
                 return false;
             }
             catch (Exception e)
@@ -401,7 +408,7 @@ namespace SentisGameplayImprovements
             {
                 Vector3D fromWorldPos =
                     Vector3D.Transform(cell * cubeBlock.CubeGrid.GridSize, cubeBlock.CubeGrid.WorldMatrix);
-                int num = MyDebugDrawSettings.DEBUG_DRAW_EXPLOSION_DDA_RAYCASTS ? 1 : 0;
+                int num = MyDebugDrawSettings.DEBUG_DRAW_EXPLOSION_HAVOK_RAYCASTS ? 1 : 0;
                 MySlimBlock cubeBlock1 = cubeBlock.CubeGrid.GetCubeBlock(cell);
                 if (cubeBlock1 == null)
                     return IsExplosionInsideCell(cell, cubeBlock.CubeGrid, m_gridExplosion)
@@ -572,7 +579,7 @@ namespace SentisGameplayImprovements
                 if (myEntity is MyCharacter)
                 {
                     var myCharacter = ((MyCharacter) myEntity);
-                    if (myCharacter.IsUsing is MyCockpit)
+                    if (myCharacter.UsingEntity is MyCockpit)
                     {
                         var charDamage = ((MyCharacter) myEntity).Integrity - 25;
                         if (charDamage > 0)

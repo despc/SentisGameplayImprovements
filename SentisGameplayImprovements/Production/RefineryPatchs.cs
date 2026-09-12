@@ -1,4 +1,4 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using NAPI;
@@ -17,7 +17,9 @@ namespace SentisGameplayImprovements
     {
         public static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        public static void Patch(PatchContext ctx)
+        public static void Patch(PatchContext ctx) => global::SentisOptimisations.PatchGuard.Run("RefineryPatchs", ctx, PatchImpl);
+
+        internal static void PatchImpl(PatchContext ctx)
         {
             var methodInfo = typeof(MyRefinery).GetMethod("RebuildQueue", BindingFlags.DeclaredOnly
                                                                                | BindingFlags.Instance |

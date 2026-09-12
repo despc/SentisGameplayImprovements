@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Reflection;
 using NAPI;
@@ -19,7 +19,9 @@ namespace SentisGameplayImprovements
     {
         public static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        public static void Patch(PatchContext ctx)
+        public static void Patch(PatchContext ctx) => global::SentisOptimisations.PatchGuard.Run("MedkitPatches", ctx, PatchImpl);
+
+        internal static void PatchImpl(PatchContext ctx)
         {
             var MethodProvideSupport = typeof(MyLifeSupportingComponent).GetMethod
                 (nameof(MyLifeSupportingComponent.ProvideSupport), BindingFlags.Instance | BindingFlags.Public);

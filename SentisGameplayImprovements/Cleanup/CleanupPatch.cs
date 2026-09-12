@@ -14,7 +14,9 @@ namespace SentisGameplayImprovements
     {
         public static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        public static void Patch(PatchContext ctx)
+        public static void Patch(PatchContext ctx) => global::SentisOptimisations.PatchGuard.Run("CleanupPatch", ctx, PatchImpl);
+
+        internal static void PatchImpl(PatchContext ctx)
         {
             var Method = typeof(MySessionComponentTrash).GetMethod("MyEntities_OnEntityAdd",
                 BindingFlags.Instance | BindingFlags.NonPublic);

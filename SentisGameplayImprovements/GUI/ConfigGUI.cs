@@ -1,14 +1,28 @@
-﻿using System.Windows.Controls;
-using SentisGameplayImprovements;
+using System.Windows;
+using System.Windows.Controls;
+using System.Windows.Media;
 
 namespace SOPlugin.GUI
 {
-    partial class ConfigGUI : UserControl
+    public class ConfigGUI : UserControl
     {
+        // Previously generated from ConfigGUI.xaml; now built in managed code.
+        internal FilteredGrid MainFilteredGrid;
+
         public ConfigGUI()
         {
-            InitializeComponent();
-            MainFilteredGrid.DataContext = SentisGameplayImprovementsPlugin.Config;
+            BuildUi();
+            MainFilteredGrid.DataContext = SentisGameplayImprovements.SentisGameplayImprovementsPlugin.Config;
+        }
+
+        private void BuildUi()
+        {
+            var root = new StackPanel { Orientation = Orientation.Vertical };
+
+            MainFilteredGrid = new FilteredGrid();
+            root.Children.Add(MainFilteredGrid);
+
+            Content = root;
         }
     }
 }

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Reflection;
@@ -23,7 +23,9 @@ namespace SentisGameplayImprovements
         
         public static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        public static void Patch(PatchContext ctx)
+        public static void Patch(PatchContext ctx) => global::SentisOptimisations.PatchGuard.Run("ExplosionsPatch", ctx, PatchImpl);
+
+        internal static void PatchImpl(PatchContext ctx)
         {
             var UpdateAfterSimulationParallel = typeof(MyFloatingObject).GetMethod
                 (nameof(MyFloatingObject.UpdateAfterSimulationParallel), BindingFlags.Instance | BindingFlags.Public);

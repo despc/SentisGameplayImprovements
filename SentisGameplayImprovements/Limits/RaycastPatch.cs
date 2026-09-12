@@ -1,4 +1,4 @@
-﻿using System.Reflection;
+using System.Reflection;
 using Sandbox.Game.Entities;
 using Torch.Managers.PatchManager;
 
@@ -7,7 +7,9 @@ namespace SentisGameplayImprovements
     [PatchShim]
     public static class RaycastPatch
     {
-        public static void Patch(PatchContext ctx)
+        public static void Patch(PatchContext ctx) => global::SentisOptimisations.PatchGuard.Run("RaycastPatch", ctx, PatchImpl);
+
+        internal static void PatchImpl(PatchContext ctx)
         {
             ctx.GetPattern(typeof(MyCameraBlock).GetMethod(
                     nameof(MyCameraBlock.Init), BindingFlags.Instance | BindingFlags.Public | BindingFlags.DeclaredOnly))
