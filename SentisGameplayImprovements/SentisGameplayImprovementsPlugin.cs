@@ -8,6 +8,7 @@ using SentisGameplayImprovements.AllGridsActions;
 using SentisGameplayImprovements.BackgroundActions;
 using SentisGameplayImprovements.DelayedLogic;
 using SentisGameplayImprovements.PveZone;
+using SentisGameplayImprovements.Tweaks;
 using SOPlugin.GUI;
 using Torch;
 using Torch.API;
@@ -24,6 +25,20 @@ namespace SentisGameplayImprovements
         private static TorchSessionManager SessionManager;
         private static Persistent<MainConfig> _config;
         public static MainConfig Config => _config.Data;
+        internal static bool TryGetConfig(out MainConfig config)
+        {
+            config = _config?.Data;
+            return config != null;
+        }
+
+        public static void SaveConfig()
+        {
+            var instance = Instance;
+            var config = _config;
+            if (instance == null || config == null)
+                return;
+            config.Save(Path.Combine(instance.StoragePath, "SentisGameplayImprovements.cfg"));
+        }
         public UserControl _control = null;
         public static SentisGameplayImprovementsPlugin Instance { get; private set; }
         public static PcuLimiter _limiter = new PcuLimiter();
@@ -37,6 +52,7 @@ namespace SentisGameplayImprovements
             DelayedProcessor.Instance = DelayedProcessor;
             Log.Info("Init Sentis Gameplay Improvements Plugin");
             SetupConfig();
+            ShipToolRadiusPatch.ApplyAllAsync();
             SessionManager = Torch.Managers.GetManager<TorchSessionManager>();
             if (SessionManager == null)
                 return;
@@ -87,6 +103,7 @@ namespace SentisGameplayImprovements
                 MyEntities.OnEntityAdd += EntitiesObserver.MyEntitiesOnOnEntityAdd;
                 MyEntities.OnEntityRemove -= EntitiesObserver.MyEntitiesOnOnEntityRemove;
                 MyEntities.OnEntityRemove += EntitiesObserver.MyEntitiesOnOnEntityRemove;
+                ShipToolRadiusPatch.ApplyAllAsync();
                 PvECore.Init();
                 DamagePatch.Init();
                 DelayedProcessor.OnLoaded();

@@ -1,5 +1,6 @@
 ﻿using System;
 using SentisGameplayImprovements.PveZone;
+using SentisGameplayImprovements.Tweaks;
 using SOPlugin.GUI;
 using Torch;
 
@@ -43,7 +44,10 @@ namespace SentisGameplayImprovements
         private bool _disableTurretUpdate = false;
         private int _minimumMassForKineticDamage = 5000;
         private int _raycastLimit = -1;
-        
+        private float _welderRadiusMultiplier = 1f;
+        private float _grinderRadiusMultiplier = 1f;
+        private float _drillRadiusMultiplier = 1f;
+
         //explosions
         private bool _explosionTweaks = false;
         private bool _asyncExplosion = true;
@@ -238,6 +242,39 @@ namespace SentisGameplayImprovements
             set => SetValue(ref _raycastLimit, value);
         }
         
+        [DisplayTab(Name = "Welder work radius multiplier", GroupName = "Ship tools", Tab = "Ship tools", Order = 0, LiveUpdate = true, Description = "Multiplier for ship welder work radius. Applied while the server is running; allowed range 0.1-10.")]
+        public float WelderRadiusMultiplier
+        {
+            get => _welderRadiusMultiplier;
+            set
+            {
+                SetValue(ref _welderRadiusMultiplier, ShipToolRadiusPatch.NormalizeMultiplier(value));
+                ShipToolRadiusPatch.ApplyAllAsync();
+            }
+        }
+
+        [DisplayTab(Name = "Grinder work radius multiplier", GroupName = "Ship tools", Tab = "Ship tools", Order = 1, LiveUpdate = true, Description = "Multiplier for ship grinder work radius. Applied while the server is running; allowed range 0.1-10.")]
+        public float GrinderRadiusMultiplier
+        {
+            get => _grinderRadiusMultiplier;
+            set
+            {
+                SetValue(ref _grinderRadiusMultiplier, ShipToolRadiusPatch.NormalizeMultiplier(value));
+                ShipToolRadiusPatch.ApplyAllAsync();
+            }
+        }
+
+        [DisplayTab(Name = "Drill work radius multiplier", GroupName = "Ship tools", Tab = "Ship tools", Order = 2, LiveUpdate = true, Description = "Multiplier for ship drill detection and voxel cutout radius. Applied while the server is running; allowed range 0.1-10.")]
+        public float DrillRadiusMultiplier
+        {
+            get => _drillRadiusMultiplier;
+            set
+            {
+                SetValue(ref _drillRadiusMultiplier, ShipToolRadiusPatch.NormalizeMultiplier(value));
+                ShipToolRadiusPatch.ApplyAllAsync();
+            }
+        }
+
         [DisplayTab(Name = "No damage from voxels before speed", GroupName = "Voxels", Tab = "Voxels", Order = 0, Description = "No damage from voxels before speed")]
         public int NoDamageFromVoxelsBeforeSpeed
         {
