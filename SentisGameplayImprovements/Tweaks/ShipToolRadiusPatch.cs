@@ -58,6 +58,17 @@ namespace SentisGameplayImprovements.Tweaks
             return Math.Max(MinMultiplier, Math.Min(MaxMultiplier, value));
         }
 
+        /// <summary>
+        /// Welder-specific normalization: no upper bound by design (large structures
+        /// may need a very large work radius); the lower bound still applies.
+        /// </summary>
+        public static float NormalizeWelderMultiplier(float value)
+        {
+            if (float.IsNaN(value) || float.IsInfinity(value))
+                return 1f;
+            return Math.Max(MinMultiplier, value);
+        }
+
         /// <summary>Queues one coalesced refresh for every currently loaded ship tool.</summary>
         public static void ApplyAllAsync()
         {

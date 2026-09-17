@@ -15,6 +15,7 @@ class ShipToolRadiusContractTests(unittest.TestCase):
         for tool in ("Welder", "Grinder", "Drill"):
             self.assertRegex(source, rf"_{tool[0].lower() + tool[1:]}RadiusMultiplier\s*=\s*1f")
             self.assertRegex(source, rf"public\s+float\s+{tool}RadiusMultiplier")
+        self.assertIn("ShipToolRadiusPatch.NormalizeWelderMultiplier(value));", source)
         self.assertGreaterEqual(source.count("ShipToolRadiusPatch.ApplyAllAsync()"), 3)
         self.assertGreaterEqual(source.count('GroupName = "Ship tools"'), 3)
 

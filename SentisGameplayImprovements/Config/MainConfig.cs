@@ -242,13 +242,13 @@ namespace SentisGameplayImprovements
             set => SetValue(ref _raycastLimit, value);
         }
         
-        [DisplayTab(Name = "Welder work radius multiplier", GroupName = "Ship tools", Tab = "Ship tools", Order = 0, LiveUpdate = true, Description = "Multiplier for ship welder work radius. Applied while the server is running; allowed range 0.1-10.")]
+        [DisplayTab(Name = "Welder work radius multiplier", GroupName = "Ship tools", Tab = "Ship tools", Order = 0, LiveUpdate = true, Description = "Multiplier for ship welder work radius. Applied while the server is running; minimum 0.1, no upper limit.")]
         public float WelderRadiusMultiplier
         {
             get => _welderRadiusMultiplier;
             set
             {
-                SetValue(ref _welderRadiusMultiplier, ShipToolRadiusPatch.NormalizeMultiplier(value));
+                SetValue(ref _welderRadiusMultiplier, ShipToolRadiusPatch.NormalizeWelderMultiplier(value));
                 ShipToolRadiusPatch.ApplyAllAsync();
             }
         }

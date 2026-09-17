@@ -21,7 +21,7 @@ namespace SentisGameplayImprovements.Commands
                             $"drill={config.DrillRadiusMultiplier:0.###}");
         }
 
-        [Command("toolradius welder", "Set ship-welder work-radius multiplier (0.1-10), live")]
+        [Command("toolradius welder", "Set ship-welder work-radius multiplier (min 0.1, no upper limit), live")]
         [Permission(MyPromoteLevel.Admin)]
         public void SetWelder(float multiplier)
         {
