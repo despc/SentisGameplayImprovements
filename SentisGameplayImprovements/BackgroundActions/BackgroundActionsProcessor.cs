@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
@@ -28,6 +28,7 @@ namespace SentisGameplayImprovements.BackgroundActions
             Task.Run(CheckLoop);
             Task.Run(FastCheckLoop);
             Task.Run(NotSoFastFastCheckLoop);
+            Task.Run(FallThroughLoop);
         }
 
         public void OnUnloading()
@@ -59,6 +60,36 @@ namespace SentisGameplayImprovements.BackgroundActions
             }
         }
         
+        /// <summary>Hands a slice of the fall-through check to the game thread every 100 ms.</summary>
+        public void FallThroughLoop()
+        {
+            while (!CancellationTokenSource.Token.IsCancellationRequested)
+            {
+                try
+                {
+                    Thread.Sleep(100);
+                    if (SentisGameplayImprovementsPlugin.Config.AutoRestoreFromVoxel)
+                        MyAPIGateway.Utilities.InvokeOnGameThread(CheckFallThrough);
+                }
+                catch (Exception e)
+                {
+                    Log.Error(e, "FallThroughLoop error");
+                }
+            }
+        }
+
+        private static void CheckFallThrough()
+        {
+            try
+            {
+                FallInVoxelDetector.CheckSlice();
+            }
+            catch (Exception e)
+            {
+                Log.Error(e, "Fall-through check failed");
+            }
+        }
+
         public void NotSoFastFastCheckLoop()
         {
             try
@@ -136,11 +167,6 @@ namespace SentisGameplayImprovements.BackgroundActions
                     if (SentisGameplayImprovementsPlugin.Config.EnabledPcuLimiter)
                     {
                         SentisGameplayImprovementsPlugin._limiter.CheckGrid(grid);
-                    }
-
-                    if (SentisGameplayImprovementsPlugin.Config.AutoRestoreFromVoxel)
-                    {
-                        FallInVoxelDetector.CheckAndSavePos(grid);
                     }
 
                     if (SentisGameplayImprovementsPlugin.Config.AutoRenameGrids)

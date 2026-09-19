@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using NLog;
@@ -91,40 +91,9 @@ namespace SentisGameplayImprovements
                     return;
                 }
 
-                // if (!Voxels.IsGridInsideVoxel(gridToRevert))
-                // {
-                //     Context.Respond("Grid not in voxels!");
-                //     return;
-                // }
-
-                var fallInVoxelDetector = BackgroundActionsProcessor.FallInVoxelDetector;
-                if (fallInVoxelDetector.gridsPos.TryGetValue(gridToRevert.EntityId, out PositionAndOrientation pos))
-                {
-                    fallInVoxelDetector.DoRestoreSync(gridToRevert, true, pos);
-                }
-                else
-                {
-                    MyPlanet planet = null;
-                    var currentPosition = gridToRevert.PositionComp.GetPosition();
-                    foreach (var p in EntitiesObserver.Planets)
-                    {
-                        if (planet == null)
-                        {
-                            planet = p;
-                            continue;
-                        }
-
-                        if (Vector3D.Distance(planet.PositionComp.GetPosition(), currentPosition) >
-                            Vector3D.Distance(p.PositionComp.GetPosition(), currentPosition))
-                        {
-                            planet = p;
-                        }
-                    }
-
-                    var pos1 = planet.GetClosestSurfacePointGlobal(gridToRevert.WorldMatrix.Translation);
-                    fallInVoxelDetector.DoRestoreSync(gridToRevert, true,
-                        new PositionAndOrientation(pos1, gridToRevert.PositionComp.GetOrientation()));
-                }
+                var context = Context;
+                MyAPIGateway.Utilities.InvokeOnGameThread(() =>
+                    context.Respond(BackgroundActionsProcessor.FallInVoxelDetector.RestoreOnRequest(gridToRevert), "Voxel Shift"));
             }
             catch (Exception e)
             {

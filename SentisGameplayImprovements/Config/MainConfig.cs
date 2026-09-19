@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using SentisGameplayImprovements.PveZone;
 using SentisGameplayImprovements.Tweaks;
 using SOPlugin.GUI;
@@ -303,7 +303,7 @@ namespace SentisGameplayImprovements
             set => SetValue(ref _disableNoOwner, value);
         }
 
-        [DisplayTab(Name = "Auto Restore From Voxel", GroupName = "Tweaks", Tab = "Tweaks", Order = 0, Description = "Grids inside voxels rollback for 15sec")]
+        [DisplayTab(Name = "Auto Restore From Voxel", GroupName = "Tweaks", Tab = "Tweaks", Order = 0, Description = "Grids that fell through the ground of a planet are put back where they were a second before, checked every second")]
         public bool AutoRestoreFromVoxel
         {
             get => _autoRestoreFromVoxel;
