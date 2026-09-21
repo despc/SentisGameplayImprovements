@@ -1,8 +1,5 @@
-﻿using System;
-using System.Collections.Concurrent;
+using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Threading;
 using NLog;
 using Sandbox.Definitions;
 using Sandbox.Game.Entities;
@@ -10,7 +7,6 @@ using Sandbox.Game.Entities.Cube;
 using Sandbox.Game.World;
 using Sandbox.ModAPI;
 using VRage.Game;
-using VRage.Game.Components;
 using VRage.Game.Entity;
 using VRage.Game.ModAPI;
 using VRage.ObjectBuilders.Private;
@@ -19,168 +15,195 @@ using VRageMath;
 
 namespace SentisGameplayImprovements.Loot;
 
-public class LootProcessor
+/// <summary>
+/// Components knocked out of blocks by damage, dropped as floating objects where the blocks were.
+///
+/// The damage handler counts what each hit knocks out and adds it to the grid's pile, at the
+/// place of the blocks it came from; the background loop takes the piles every so often and has
+/// them dropped there, each stack in a free spot a few metres from it. Everything that touches
+/// the world - finding a free spot, spawning - happens on the game thread, a few frames apart.
+/// </summary>
+public static class LootProcessor
 {
     public static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-    public static ConcurrentDictionary<MyCubeGrid, Dictionary<MyDefinitionId, int>> ComponentsSpawnBuffer =
-        new ConcurrentDictionary<MyCubeGrid, Dictionary<MyDefinitionId, int>>();
+    // spheres around the place of the lost blocks, nearest first, and the spots tried on each
+    private static readonly double[] DropRadii = { 3, 6, 10, 15, 25 };
+    private const int TriesPerRadius = 5;
+    private const int FramesBetweenDrops = 10;
+
+    private sealed class Pile
+    {
+        // where the blocks were, weighted by what each lost
+        public Vector3D Sum;
+        public double Weight;
+        public Vector3D Position => Weight > 0 ? Sum / Weight : Sum;
+        public readonly Dictionary<MyDefinitionId, int> Components = new Dictionary<MyDefinitionId, int>();
+    }
+
+    /// <summary>
+    /// Set by an explosion while it asks the damage handlers about a block itself: the game then
+    /// asks them again from the block's own DoDamage, and loot counted both times came out double.
+    /// The explosion counts the loot of a block it removes without DoDamage by itself. Game thread.
+    /// </summary>
+    internal static bool Suppressed;
+
+    // grid id -> what it has lost since the last drop. Filled on the game thread by the damage
+    // handler, taken whole by the background loop: one lock, and the loop swaps the dictionary out.
+    private static readonly object PilesLock = new object();
+    private static Dictionary<long, Pile> _piles = new Dictionary<long, Pile>();
+
     public static void CalculateLoot(object target, MyDamageInformation info)
+    {
+        if (!SentisGameplayImprovementsPlugin.Config.LootSystemEnabled || Suppressed) return;
+        if (!(target is MySlimBlock block)) return;
+        if (info.Type == MyDamageType.Grind || info.Type == MyDamageType.Deformation) return;
+        if (info.Amount <= 0) return;
+
+        try
         {
-            var slimBlock = target as MySlimBlock;
-            if (slimBlock == null)
+            var definition = block.BlockDefinition;
+            var components = definition?.Components;
+            if (components == null || components.Length == 0) return;
+
+            // the damage as the block will really take it (MySlimBlock.DoDamage)
+            var damage = info.Amount * block.BlockGeneralDamageModifier * definition.GeneralDamageMultiplier * block.DamageRatio;
+            var stacks = new LootMath.Stack[components.Length];
+            for (var i = 0; i < components.Length; i++)
             {
-                return;
+                var stack = block.ComponentStack.GetComponentStackInfo(i);
+                stacks[i] = new LootMath.Stack(stack.Integrity, stack.MountedCount, stack.TotalCount, stack.MaxIntegrity);
             }
 
-            if (!SentisGameplayImprovementsPlugin.Config.LootSystemEnabled)
+            var lost = LootMath.Lost(stacks, damage);
+            var lostTotal = 0;
+            foreach (var count in lost) lostTotal += count;
+            if (lostTotal == 0) return;
+            Pile pile = null;
+            for (var i = 0; i < lost.Length; i++)
             {
-                return;
-            }
-            
-            if (info.Type == MyDamageType.Grind || info.Type == MyDamageType.Deformation)
-            {
-                return;
-            }
-
-            var amount = info.Amount;
-            amount *= slimBlock.BlockGeneralDamageModifier;
-            Dictionary<MyDefinitionId, int> componentsToSpawn = new Dictionary<MyDefinitionId, int>();
-            for (var i = slimBlock.BlockDefinition.Components.Length - 1; i >= 0; i--)
-            {
-                var myComponentStackInfo = slimBlock.ComponentStack.GetComponentStackInfo(i);
-                if (myComponentStackInfo.MountedCount == 0)
+                if (lost[i] <= 0) continue;
+                if (pile == null)
                 {
-                    continue;
+                    var grid = block.CubeGrid;
+                    lock (PilesLock)
+                    {
+                        if (!_piles.TryGetValue(grid.EntityId, out pile))
+                        {
+                            pile = new Pile();
+                            _piles[grid.EntityId] = pile;
+                        }
+                        block.ComputeWorldCenter(out var at);
+                        pile.Sum += at * lostTotal;
+                        pile.Weight += lostTotal;
+                    }
                 }
 
-                var oneCompIntegrity = myComponentStackInfo.MaxIntegrity / myComponentStackInfo.TotalCount;
-                if ((int) ((myComponentStackInfo.Integrity - amount) / oneCompIntegrity) + 1 >= myComponentStackInfo.MountedCount)
+                var id = block.ComponentStack.GetComponentStackInfo(i).DefinitionId;
+                lock (PilesLock)
                 {
+                    pile.Components.TryGetValue(id, out var count);
+                    pile.Components[id] = count + lost[i];
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "Loot count failed");
+        }
+    }
+
+    /// <summary>Everything piled up since the last call. Background loop.</summary>
+    public static void DropPiles()
+    {
+        Dictionary<long, Pile> piles;
+        lock (PilesLock)
+        {
+            if (_piles.Count == 0) return;
+            piles = _piles;
+            _piles = new Dictionary<long, Pile>();
+        }
+
+        var session = MySession.Static;
+        if (session == null) return;
+        var frame = session.GameplayFrameCounter;
+        var index = 0;
+        foreach (var pile in piles.Values)
+        {
+            foreach (var pair in pile.Components)
+            {
+                var item = Item(pair.Key, pair.Value);
+                if (item == null) continue;
+                var at = pile.Position;
+                MyAPIGateway.Utilities.InvokeOnGameThread(() => Drop(item.Value, at),
+                    StartAt: frame + FramesBetweenDrops * ++index);
+            }
+        }
+    }
+
+    private static MyPhysicalInventoryItem? Item(MyDefinitionId id, int lost)
+    {
+        var definition = MyDefinitionManager.Static.GetComponentDefinition(id);
+        if (definition == null) return null;
+        var amount = LootMath.Dropped(lost, definition.DropProbability);
+        if (amount < 1) return null;
+        if (!(MyObjectBuilderSerializerKeen.CreateNewObject(id.TypeId, id.SubtypeName) is MyObjectBuilder_PhysicalObject content))
+            return null;
+        return new MyPhysicalInventoryItem(amount, content);
+    }
+
+    /// <summary>
+    /// A free spot near where the blocks were - the nearest sphere around it that has one - and
+    /// the item dropped there. The old spot was anywhere on a sphere of 75 m around the middle of
+    /// the grid, which looked like nothing had fallen out at all. Game thread.
+    /// </summary>
+    private static void Drop(MyPhysicalInventoryItem item, Vector3D around)
+    {
+        try
+        {
+            var found = new List<MyEntity>();
+            foreach (var radius in DropRadii)
+            {
+                var sphere = new BoundingSphereD(around, radius);
+                for (var i = 0; i < TriesPerRadius; i++)
+                {
+                    var at = MyUtils.GetRandomBorderPosition(ref sphere);
+                    var spot = new BoundingSphereD(at, 0.3);
+                    found.Clear();
+                    MyGamePruningStructure.GetAllEntitiesInSphere(ref spot, found);
+                    if (!Free(found, at)) continue;
+                    MyFloatingObjects.Spawn(item, at, Vector3D.Forward, Vector3D.Up);
+                    return;
+                }
+            }
+        }
+        catch (Exception e)
+        {
+            Log.Error(e, "Loot drop failed");
+        }
+    }
+
+    /// <summary>
+    /// Nothing solid at the point: no block of a grid in that cell (a grid's box is mostly air
+    /// around a wreck), no rock, no other floating object or character.
+    /// </summary>
+    private static bool Free(List<MyEntity> found, Vector3D at)
+    {
+        foreach (var entity in found)
+        {
+            switch (entity)
+            {
+                case MyCubeGrid grid:
+                    if (grid.GetCubeBlock(grid.WorldToGridInteger(at)) != null) return false;
                     break;
-                }
-
-                for (int j = 0; j < myComponentStackInfo.MountedCount; j++)
-                {
-                    if ((int) ((myComponentStackInfo.Integrity - amount) / oneCompIntegrity) + 1 >= myComponentStackInfo.MountedCount)
-                    {
-                        break;
-                    }
-
-                    amount -= oneCompIntegrity;
-                    var compDef = myComponentStackInfo.DefinitionId;
-                    if (componentsToSpawn.ContainsKey(compDef))
-                    {
-                        componentsToSpawn[compDef] = componentsToSpawn[compDef] + 1;
-                    }
-                    else
-                    {
-                        componentsToSpawn[compDef] = 1;
-                    }
-                }
-            }
-
-            if (componentsToSpawn.Count > 0)
-            {
-                Dictionary<MyDefinitionId, int> componentsToSpawnFromBuffer;
-                if (ComponentsSpawnBuffer.TryGetValue(slimBlock.CubeGrid, out componentsToSpawnFromBuffer))
-                {
-                    foreach (var newComponents in componentsToSpawn)
-                    {
-                        int count;
-                        if (componentsToSpawnFromBuffer.TryGetValue(newComponents.Key, out count))
-                        {
-                            componentsToSpawnFromBuffer[newComponents.Key] = count + newComponents.Value;
-                        }
-                        else
-                        {
-                            componentsToSpawnFromBuffer[newComponents.Key] = newComponents.Value;
-                        }
-                    }
-                }
-                else
-                {
-                    ComponentsSpawnBuffer[slimBlock.CubeGrid] = componentsToSpawn;
-                }
+                case MyVoxelBase voxel:
+                    if (voxel.IsAnyOfPointInside(new[] { at })) return false;
+                    break;
+                case MyFloatingObject _:
+                case Sandbox.Game.Entities.Character.MyCharacter _:
+                    return false;
             }
         }
-
-        public static void CheckPlaceAndSpawnItems(Dictionary<MyDefinitionId, int> componentsToSpawn, Vector3D gridPos)
-        {
-            try
-            {
-                List<MyPhysicalInventoryItem> itemsToSpawn = new List<MyPhysicalInventoryItem>();
-                foreach (var componentToSpawn in componentsToSpawn)
-                {
-                    var myDefinitionId = componentToSpawn.Key;
-                    MyObjectBuilder_PhysicalObject newObject =
-                        MyObjectBuilderSerializerKeen.CreateNewObject(myDefinitionId.TypeId,
-                                myDefinitionId.SubtypeName) as MyObjectBuilder_PhysicalObject;
-
-                   
-                    var compDef = MyDefinitionManager.Static.GetComponentDefinition(myDefinitionId);
-                    var amountWithChance = (int)(componentToSpawn.Value * compDef.DropProbability);
-                    if (amountWithChance < 1)
-                    {
-                        continue;
-                    }
-                    var newItem = new MyPhysicalInventoryItem(amountWithChance, newObject);
-                   
-                    itemsToSpawn.Add(newItem);
-                }
-                
-                
-                MyPhysicsComponentBase motionInheritedFrom = null;
-                
-                for (var index = 0; index < itemsToSpawn.Count; index++)
-                {
-                    var item = itemsToSpawn[index];
-                    Thread.Sleep(MyUtils.GetRandomInt(0, 32));
-                    var boundingSphere = new BoundingSphere(gridPos, 75);
-                    int i = 0;
-                    Vector3D? pos = null;
-                    while (i < 20 && !pos.HasValue)
-                    {
-                        i++;
-                        var randomBorderPosition = MyUtils.GetRandomBorderPosition(ref boundingSphere);
-                        var spawnPosSphere = new BoundingSphereD(randomBorderPosition, 0.3f);
-                        List<MyEntity> result = new List<MyEntity>();
-                        MyGamePruningStructure.GetAllEntitiesInSphere(ref spawnPosSphere, result);
-                        var voxelMapsNotContainsPoint = result.Where(entity => entity is MyVoxelBase &&
-                                                                               !((MyVoxelBase)entity).IsAnyOfPointInside([randomBorderPosition])).ToList();
-                        foreach (var myEntity in voxelMapsNotContainsPoint)
-                        {
-                            result.Remove(myEntity);
-                        }
-                        if (result.Count == 0)
-                        {
-                            pos = randomBorderPosition;
-                        }
-                    }
-
-                    if (!pos.HasValue)
-                    {
-                        continue;
-                    }
-                    
-                    MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                    {
-                        try
-                        {
-                            MyFloatingObjects.Spawn(item, pos.Value, Vector3D.Forward, Vector3D.Up);
-                        }
-                        catch (Exception e)
-                        {
-                            Log.Error(e, "Spawn drop sync exception");
-                        }
-                    }, StartAt: MySession.Static.GameplayFrameCounter + 10 * index);
-                        
-                }
-                
-            }
-            catch (Exception e)
-            {
-                Log.Error(e, "Spawn drop exception");
-            }
-        }
+        return true;
+    }
 }

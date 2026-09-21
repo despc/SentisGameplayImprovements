@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using NLog;
 using Sandbox.Game.Entities;
@@ -21,14 +21,7 @@ namespace SentisGameplayImprovements.BackgroundActions
                 return;
             }
 
-            foreach (var entry in LootProcessor.ComponentsSpawnBuffer)
-            {
-                var myCubeGrid = entry.Key;
-                var componentsToSpawn = entry.Value;
-                LootProcessor.CheckPlaceAndSpawnItems(componentsToSpawn, myCubeGrid.PositionComp.GetPosition());
-            }
-            
-            LootProcessor.ComponentsSpawnBuffer.Clear();
+            LootProcessor.DropPiles();
         }
 
         public static void CheckFloatingObjects()

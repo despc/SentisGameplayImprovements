@@ -50,7 +50,6 @@ namespace SentisGameplayImprovements
 
         //explosions
         private bool _explosionTweaks = false;
-        private bool _asyncExplosion = true;
         private float _warheadDamageMultiplier = 2.5f;
         private int _accelerationToDamage = 1000;  // взрыв боеприпаса или взрывчатки от удара об что-то, указывается ускорение объекта которое приводит к взрыву
         private float _explosivesDamage = 10;
@@ -327,8 +326,6 @@ namespace SentisGameplayImprovements
         }
         
         
-        [DisplayTab(Name = "Async explosion", GroupName = "Explosions", Tab = "Explosions", Order = 8, Description = "Async explosion")]
-        public bool AsyncExplosion { get => _asyncExplosion; set => SetValue(ref _asyncExplosion, value); }
         
         [DisplayTab(Name = "Explosion Tweaks Enabled", GroupName = "Explosions", Tab = "Explosions", Order = -1, Description = "Explosion Tweaks Enabled")]
         public bool ExplosionTweaks { get => _explosionTweaks; set => SetValue(ref _explosionTweaks, value); }
