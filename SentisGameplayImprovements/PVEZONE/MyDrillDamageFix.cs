@@ -1,14 +1,17 @@
-using System.Linq;
 using System.Reflection;
 using NAPI;
+using Sandbox.Game.Entities;
 using Sandbox.Game.Weapons;
-using Sandbox.Game.World;
-using SentisGameplayImprovements;
 using Torch.Managers.PatchManager;
-using VRageMath;
 
 namespace SentisGameplayImprovements.PveZone
 {
+    /// <summary>
+    /// A drill does not cut into the blocks of another player's grid in the PvE zone. The damage a drill does
+    /// to a block goes past the damage handler as a deformation, so the drilling itself is stopped - only for
+    /// a target grid in the zone that the drill's owner may not damage (<see cref="DamageHandler.Blocks"/>);
+    /// one's own grids and the grids outside the zone are drilled as always.
+    /// </summary>
     [PatchShim]
     internal static class MyDrillDamageFix
     {
@@ -22,37 +25,26 @@ namespace SentisGameplayImprovements.PveZone
             ctx.Prefix(typeof(MyDrillBase), typeof(MyDrillDamageFix), nameof(TryDrillBlocks));
         }
 
-        private static bool TryDrillBlocks(MyDrillBase __instance, ref bool __result)
+        private static bool TryDrillBlocks(MyDrillBase __instance, MyCubeGrid grid, bool onlyCheck, ref bool __result)
         {
-            if (!SentisGameplayImprovementsPlugin.Config.PvEZoneEnabled)
-            {
+            if (onlyCheck || !SentisGameplayImprovementsPlugin.Config.PvEZoneEnabled || !PvECore.IsProtected(grid))
                 return true;
-            }
 
-            if (drillEntity.GetValue(__instance) is MyHandDrill handDrill)
+            long owner;
+            switch (drillEntity.GetValue(__instance))
             {
-                var myPlayer = MySession.Static.Players.GetOnlinePlayers().ToList().Find((MyPlayer b) => b.Identity.IdentityId == handDrill.OwnerIdentityId);
-
-                if (myPlayer?.Character == null)
+                case MyHandDrill handDrill:
+                    owner = handDrill.OwnerIdentityId;
+                    break;
+                case MyShipDrill shipDrill:
+                    owner = shipDrill.OwnerId;
+                    break;
+                default:
                     return true;
-
-                var playerPosition = myPlayer.Character.PositionComp.GetPosition();
-                if (PvECore.PveSphere.Contains(playerPosition) == ContainmentType.Contains)
-                {
-                    __result = false;
-                    return false;
-                }
             }
-            if (drillEntity.GetValue(__instance) is MyShipDrill myShipDrill)
-            {
-                if (PvECore.EntitiesInZone.Contains(myShipDrill.CubeGrid.EntityId))
-                {
-                    __result = false;
-                    return false;
-                }
-
-            }
-            return true;
+            if (!DamageHandler.Blocks(owner, grid)) return true;
+            __result = false;
+            return false;
         }
     }
 }

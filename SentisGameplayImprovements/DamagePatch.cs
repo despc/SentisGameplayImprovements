@@ -138,7 +138,8 @@ namespace SentisGameplayImprovements
 
             if (SentisGameplayImprovementsPlugin.Config.PvEZoneEnabled)
             {
-                if (PvECore.EntitiesInZone.Contains(cubeGrid.EntityId))
+                // no ramming damage to a grid in the PvE zone, one's own included
+                if (PvECore.IsProtected(cubeGrid))
                 {
                     if (SentisGameplayImprovementsPlugin.Config.EnableDamageFromNPC
                         && otherEntity is MyCubeGrid && ((MyCubeGrid)otherEntity).IsNpcGrid())

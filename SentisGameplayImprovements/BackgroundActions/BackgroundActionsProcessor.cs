@@ -15,7 +15,6 @@ namespace SentisGameplayImprovements.BackgroundActions
         public static FallInVoxelDetector FallInVoxelDetector = new FallInVoxelDetector();
         private GridAutoRenamer _autoRenamer = new GridAutoRenamer();
         private OnlineReward _onlineReward = new OnlineReward();
-        private PvEGridChecker _pvEGridChecker = new PvEGridChecker();
 
         public static readonly Logger Log = LogManager.GetCurrentClassLogger();
         private int counter = 0;
@@ -177,11 +176,6 @@ namespace SentisGameplayImprovements.BackgroundActions
                     if (SentisGameplayImprovementsPlugin.Config.DisableNoOwner)
                     {
                         CheckNobodyOwner(grid);
-                    }
-
-                    if (SentisGameplayImprovementsPlugin.Config.PvEZoneEnabled)
-                    {
-                        _pvEGridChecker.CheckGridIsPvE(grid);
                     }
                 }
             }
