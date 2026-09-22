@@ -1,0 +1,234 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  Пример настроек SentisGameplayImprovements со значениями по умолчанию.
+  Файл сервера: Instance\SentisGameplayImprovements.cfg (Torch создаёт его при первом запуске).
+  Этот файл можно скопировать туда как есть: комментарии при чтении пропускаются.
+  Параметр, которого нет в файле, берёт значение по умолчанию.
+  Формат наград: Тип_Сабтип=количество;... где Тип - Ore, Ingot, Component или любой другой физический
+  предмет (PhysicalObject), например Ingot_Platinum=50;Component_SteelPlate=100.
+  Подробности о каждой возможности: README.md.
+-->
+<MainConfig xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+
+  <!-- ================================ Награда за онлайн ================================ -->
+
+  <!-- Выдавать игрокам награду за время в игре. -->
+  <OnlineRewardEnabled>true</OnlineRewardEnabled>
+
+  <!-- ================================ PvE-зона ================================ -->
+
+  <!-- Включает PvE-зону: гриды в ней не получают урона от других игроков (оружие, инструменты, тараны,
+       буры); свои и члены своей фракции могут. -->
+  <PvEZoneEnabled>false</PvEZoneEnabled>
+
+  <!-- Урон от NPC и по NPC в PvE-зоне проходит. -->
+  <EnableDamageFromNPC>false</EnableDamageFromNPC>
+
+  <!-- Центр PvE-зоны, x:y:z (точка как разделитель дробной части). -->
+  <PveZonePos>-73641.29:-623775.25:-1089014.23</PveZonePos>
+
+  <!-- Радиус PvE-зоны, м. -->
+  <PveZoneRadius>100000</PveZoneRadius>
+
+  <!-- ================================ Награда за онлайн (продолжение) ================================ -->
+
+  <!-- Что выдаётся в инвентарь персонажа, в формате Тип_Сабтип=количество;... -->
+  <OnlineReward>Ingot_Platinum=50;Ingot_Uranium=50</OnlineReward>
+
+  <!-- Сообщение игроку вместе с наградой. -->
+  <OnlineRewardMessage>Спасибо что остаётесь с нами, награда за игру на сервере в вашем инвентаре.</OnlineRewardMessage>
+
+  <!-- Раз во сколько минут в игре выдаётся награда. -->
+  <OnlineRewardEachMinutes>60</OnlineRewardEachMinutes>
+
+  <!-- ================================ Очистка мусора ================================ -->
+
+  <!-- Части сабтипов блоков через запятую: грид, в котором есть блок с таким сабтипом, ванильная
+       очистка мусора не трогает. -->
+  <IgnoreCleanupSubtypes>Cargo</IgnoreCleanupSubtypes>
+
+  <!-- ================================ Охрана фракций ================================ -->
+
+  <!-- Папка с чертежами охраны (см. SpawnsGuardsForAttackedFaction). -->
+  <PathToGrids>C:\SE\Arrakis\NPC</PathToGrids>
+
+  <!-- Файлы чертежей охраны через запятую, из PathToGrids. -->
+  <GuardiansNpcNames>MKB_9000.sbc,MKB_9000.sbc</GuardiansNpcNames>
+
+  <!-- На каком расстоянии от атакующего появляется охрана, м. -->
+  <GuardDistanceSpawn>300</GuardDistanceSpawn>
+
+  <!-- ================================ Контракты ================================ -->
+
+  <!-- Множитель награды за контракты сопровождения. -->
+  <ContractEscortMultiplier>10</ContractEscortMultiplier>
+
+  <!-- Множитель награды за контракты доставки (приобретения). -->
+  <ContractAcquisitionMultiplier>30</ContractAcquisitionMultiplier>
+
+  <!-- Множитель награды за контракты перевозки. -->
+  <ContractHaulingtMultiplier>10</ContractHaulingtMultiplier>
+
+  <!-- Множитель награды за контракты ремонта. -->
+  <ContractRepairMultiplier>10</ContractRepairMultiplier>
+
+  <!-- ================================ Лимит PCU и постройка ================================ -->
+
+  <!-- Лимит PCU: у динамической группы сверх лимита выключаются функциональные блоки, после пяти
+       превышений самый большой грид переводится в статику. -->
+  <EnabledPcuLimiter>true</EnabledPcuLimiter>
+
+  <!-- Через 2 секунды после постройки на гриде без маяка предупреждать игроков рядом, что без маяка
+       постройку удалит очистка. -->
+  <EnableCheckBeacon>true</EnableCheckBeacon>
+
+  <!-- Статичные гриды получают урон от таранов. -->
+  <StaticRamming>true</StaticRamming>
+
+  <!-- Разрешить обычным игрокам команды !convert (статика/динамика). Админам можно всегда. -->
+  <AllowPlayersUseConvertCommands>true</AllowPlayersUseConvertCommands>
+
+  <!-- Лимит PCU группы, в которой есть статичный грид. -->
+  <MaxStaticGridPCU>200000</MaxStaticGridPCU>
+
+  <!-- Лимит PCU динамической группы. -->
+  <MaxDinamycGridPCU>30000</MaxDinamycGridPCU>
+
+  <!-- ================================ Урон ================================ -->
+
+  <!-- Таран гридом легче этой массы (кг) урона не наносит. -->
+  <MinimumMassForKineticDamage>5000</MinimumMassForKineticDamage>
+
+  <!-- ================================ Камеры ================================ -->
+
+  <!-- Дальность рейкаста камер, м. Меньше 1 - ванильная. Нужен рестарт. -->
+  <RaycastLimit>-1</RaycastLimit>
+
+  <!-- ================================ Корабельные инструменты ================================ -->
+
+  <!-- Множитель рабочего радиуса корабельного сварщика: от 0.1, без верхнего предела. Применяется на
+       лету, в том числе к уже стоящим блокам (команда !toolradius welder). -->
+  <WelderRadiusMultiplier>1</WelderRadiusMultiplier>
+
+  <!-- Множитель рабочего радиуса корабельного резака, 0.1-10, на лету. -->
+  <GrinderRadiusMultiplier>1</GrinderRadiusMultiplier>
+
+  <!-- Множитель радиуса корабельного бура (и захват, и вырез вокселей), 0.1-10, на лету. -->
+  <DrillRadiusMultiplier>1</DrillRadiusMultiplier>
+
+  <!-- ================================ Воксели ================================ -->
+
+  <!-- Удар о воксели медленнее этой скорости (м/с) не деформирует грид. -->
+  <NoDamageFromVoxelsBeforeSpeed>30</NoDamageFromVoxelsBeforeSpeed>
+
+  <!-- Удары о воксели не деформируют гриды, рядом с которыми нет игроков. -->
+  <NoDamageFromVoxelsIfNobodyNear>true</NoDamageFromVoxelsIfNobodyNear>
+
+  <!-- ================================ Лимит PCU (продолжение) ================================ -->
+
+  <!-- Считать в PCU группы и гриды, пристыкованные коннектором. -->
+  <IncludeConnectedGrids>false</IncludeConnectedGrids>
+
+  <!-- ================================ Прочее ================================ -->
+
+  <!-- Выключать функциональные блоки, у которых нет владельца. -->
+  <DisableNoOwner>false</DisableNoOwner>
+
+  <!-- Возвращать гриды, провалившиеся сквозь грунт планеты, в позу секундой раньше над грунтом. -->
+  <AutoRestoreFromVoxel>false</AutoRestoreFromVoxel>
+
+  <!-- ID модов через запятую, которые Torch добавит к модам мира при загрузке («Client Only Mods» в GUI).
+       Пусто - ничего не добавляется. -->
+  <OverrideModIds></OverrideModIds>
+
+  <!-- Переименовывать гриды с именами по умолчанию («Large Grid 123», «Большая структура»...) в
+       Владелец_LG_123 / Владелец_SG_123 / Владелец_Wheel. -->
+  <AutoRenameGrids>false</AutoRenameGrids>
+
+  <!-- Сколько секунд после запуска сервера урона нет вообще (гриды не ломаются при загрузке). -->
+  <DisableAnyDamageAfterStartTime>120</DisableAnyDamageAfterStartTime>
+
+  <!-- ================================ Взрывы ================================ -->
+
+  <!-- Плагин сам считает боеголовки и все взрывы игры: серверные множители, очередь взрывов с бюджетом
+       на кадр, цепные реакции, пилот уничтоженного кокпита выживает. Параметры ниже действуют только
+       с этим флагом. -->
+  <ExplosionTweaks>false</ExplosionTweaks>
+
+  <!-- Урон взрыва за одну единицу взрывчатки. -->
+  <ExplosivesDamage>10</ExplosivesDamage>
+
+  <!-- Сила взрыва патронов в инвентаре: урон снаряда (30, если у снаряда урон не задан) ×
+       количество × этот множитель. -->
+  <ProjectileAmmoExplosionMultiplier>0.1</ProjectileAmmoExplosionMultiplier>
+
+  <!-- Сила взрыва ракет в инвентаре: урон ракеты (5000, если не задан) × количество ×
+       этот множитель. -->
+  <MissileAmmoExplosionMultiplier>0.3</MissileAmmoExplosionMultiplier>
+
+  <!-- Радиус взрыва боеукладки, м. -->
+  <AmmoExplosionRadius>15</AmmoExplosionRadius>
+
+  <!-- Через сколько кадров взрывается взведённая боеголовка, по которой попали (цепная реакция). -->
+  <WarheadExplosionDelay>30</WarheadExplosionDelay>
+
+  <!-- Множитель урона боеголовок. -->
+  <WarheadDamageMultiplier>2.5</WarheadDamageMultiplier>
+
+  <!-- Ускорение (м/с²), при котором плавающий (выброшенный) предмет с боеприпасами или взрывчаткой
+       взрывается от удара или падения. 0 - от ударов не взрываются. -->
+  <AccelerationToDamage>1000</AccelerationToDamage>
+
+  <!-- ================================ Производительность ================================ -->
+
+  <!-- Выключить ванильное обновление турелей и прожекторов (если все турели на WeaponCore). -->
+  <DisableTurretUpdate>false</DisableTurretUpdate>
+
+  <!-- ================================ Фракции ================================ -->
+
+  <!-- При атаке на фракцию рядом с атакующим появляется охрана из GuardiansNpcNames. -->
+  <SpawnsGuardsForAttackedFaction>false</SpawnsGuardsForAttackedFaction>
+
+  <!-- ================================ Защита от эксплойтов ================================ -->
+
+  <!-- Обнулить массу блоков искусственной массы. -->
+  <DisableArtificialMass>false</DisableArtificialMass>
+
+  <!-- Запретить цепляться шасси к кораблям врагов. Сейчас из-за ошибки действует только на
+       NPC-корабли врагов (см. README, «Замечания»). -->
+  <DisableLockLandingGearOnEnemyShips>false</DisableLockLandingGearOnEnemyShips>
+
+  <!-- Запретить цепляться шасси к NPC-кораблям. -->
+  <DisableLockLandingGearOnNPCShips>false</DisableLockLandingGearOnNPCShips>
+
+  <!-- Строить на NPC-гридах могут только админы. -->
+  <DisableBuildBlockOnNPC>false</DisableBuildBlockOnNPC>
+
+  <!-- ================================ Воксели (продолжение) ================================ -->
+
+  <!-- Взрывы копают воксели. -->
+  <DamageVoxelsFromExplosions>true</DamageVoxelsFromExplosions>
+
+  <!-- ================================ Лут и плавающие объекты ================================ -->
+
+  <!-- Компоненты, выбитые уроном из блоков, выпадают плавающими объектами там, где стояли блоки. -->
+  <LootSystemEnabled>false</LootSystemEnabled>
+
+  <!-- Своя уборка плавающих объектов по времени жизни и количеству вместо ванильной. -->
+  <CustomFloatingObjectsCleanup>false</CustomFloatingObjectsCleanup>
+
+  <!-- Время жизни плавающего объекта при своей уборке, мин. -->
+  <FloatingObjectsLifetime>5</FloatingObjectsLifetime>
+
+  <!-- Сколько плавающих объектов допускается при своей уборке; лишние убираются случайно. -->
+  <MaxFloatingObjects>500</MaxFloatingObjects>
+
+  <!-- Коннектор в режиме выброса уничтожает руду и слитки, а не выбрасывает их. -->
+  <ConnectorDestroyInsteadThrow>false</ConnectorDestroyInsteadThrow>
+
+  <!-- ================================ Гараж ================================ -->
+
+  <!-- Папка гаража VirtualGarage: из неё клиентский мод получает список гридов игрока. -->
+  <PathToGarage>C:\torch-server\GARAGE</PathToGarage>
+
+</MainConfig>
