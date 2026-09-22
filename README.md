@@ -164,11 +164,15 @@
 
 ## Экономика, фракции, NPC
 
-- **Контракты.** Награда контрактов умножается на множители:
+- **Контракты.** Денежная награда контрактов умножается на множители:
   - сопровождение — `ContractEscortMultiplier`;
-  - доставка — `ContractAcquisitionMultiplier`;
-  - перевозка — `ContractHaulingtMultiplier`;
+  - приобретение (привезти предметы на станцию) — `ContractAcquisitionMultiplier`;
+  - перевозка — `ContractHaulingtMultiplier`, и груза, и грида: игра считает их награду одним методом;
   - ремонт — `ContractRepairMultiplier`.
+
+  Умножается то, что посчитала сама игра, так что изменения формул в игре подхватываются. Множитель 1
+  оставляет награду как в игре, отрицательный даёт 0, слишком большая награда ограничивается
+  `long.MaxValue`. Игра после этого, как и раньше, округляет награду вниз до тысяч.
 - **Репутация за атаки** (в дополнение к ванильной).
   - Атака на игрока без фракции повышает репутацию с пиратами на величину из пиратских настроек
     репутации.
@@ -243,7 +247,7 @@
 | `AllowPlayersUseConvertCommands` | `true` | Разрешить игрокам `!convert`. |
 | `RaycastLimit` | `-1` | Дальность рейкаста камер (нужен рестарт). |
 | `WelderRadiusMultiplier` / `GrinderRadiusMultiplier` / `DrillRadiusMultiplier` | `1` | Радиусы инструментов, на лету. |
-| `ContractEscortMultiplier` / `…AcquisitionMultiplier` / `…HaulingtMultiplier` / `…RepairMultiplier` | `10` / `30` / `10` / `10` | Множители наград контрактов. |
+| `ContractEscortMultiplier` / `…AcquisitionMultiplier` / `…HaulingtMultiplier` / `…RepairMultiplier` | `1` / `1` / `1` / `1` | Множители наград контрактов, 1 — как в игре. |
 | `SpawnsGuardsForAttackedFaction` | `false` | Охрана атакованной фракции. |
 | `GuardiansNpcNames` / `PathToGrids` / `GuardDistanceSpawn` | | Чертежи, папка и расстояние охраны. |
 | `OnlineRewardEnabled` / `OnlineRewardEachMinutes` / `OnlineReward` / `OnlineRewardMessage` | `true` / `60` / `Ingot_Platinum=50;Ingot_Uranium=50` | Награда за онлайн. |

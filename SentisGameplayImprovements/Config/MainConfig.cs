@@ -10,10 +10,11 @@ namespace SentisGameplayImprovements
     {
 
         //contracts
-        private double _contractEscortMultiplier = 10;
-        private double _contractAcquisitionMultiplier = 30; //Доставка
-        private double _contractHaulingtMultiplier = 10; //Перевозка
-        private double _contractRepairMultiplier = 10;
+        // 1 = the game's own rewards
+        private double _contractEscortMultiplier = 1;
+        private double _contractAcquisitionMultiplier = 1; //Приобретение
+        private double _contractHaulingtMultiplier = 1; //Перевозка груза и грида
+        private double _contractRepairMultiplier = 1;
         
         //PCU limiter
         private bool _enabledPcuLimiter = true;

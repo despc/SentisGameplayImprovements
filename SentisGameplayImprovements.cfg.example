@@ -61,18 +61,19 @@
   <GuardDistanceSpawn>300</GuardDistanceSpawn>
 
   <!-- ================================ Контракты ================================ -->
+  <!-- Множители денежной награды контрактов; 1 - как в игре. -->
 
   <!-- Множитель награды за контракты сопровождения. -->
-  <ContractEscortMultiplier>10</ContractEscortMultiplier>
+  <ContractEscortMultiplier>1</ContractEscortMultiplier>
 
-  <!-- Множитель награды за контракты доставки (приобретения). -->
-  <ContractAcquisitionMultiplier>30</ContractAcquisitionMultiplier>
+  <!-- Множитель награды за контракты приобретения (привезти предметы на станцию). -->
+  <ContractAcquisitionMultiplier>1</ContractAcquisitionMultiplier>
 
-  <!-- Множитель награды за контракты перевозки. -->
-  <ContractHaulingtMultiplier>10</ContractHaulingtMultiplier>
+  <!-- Множитель награды за контракты перевозки - и груза, и грида. -->
+  <ContractHaulingtMultiplier>1</ContractHaulingtMultiplier>
 
   <!-- Множитель награды за контракты ремонта. -->
-  <ContractRepairMultiplier>10</ContractRepairMultiplier>
+  <ContractRepairMultiplier>1</ContractRepairMultiplier>
 
   <!-- ================================ Лимит PCU и постройка ================================ -->
 

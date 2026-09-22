@@ -6,144 +6,75 @@ using Torch.Managers.PatchManager;
 
 namespace SentisGameplayImprovements
 {
+    /// <summary>
+    /// Multiplies the money reward of the game's contracts, one multiplier per kind:
+    /// <list type="bullet">
+    /// <item>acquisition (bring items to a station) - <c>ContractAcquisitionMultiplier</c>;</item>
+    /// <item>escort - <c>ContractEscortMultiplier</c>;</item>
+    /// <item>hauling - a package and a grid alike, the game prices both with one method -
+    /// <c>ContractHaulingtMultiplier</c>;</item>
+    /// <item>repair - <c>ContractRepairMultiplier</c>.</item>
+    /// </list>
+    /// Each is a suffix on the game's own reward method that scales what it returned, so the game's formula
+    /// stays the game's; the game then rounds the reward down to thousands as before.
+    /// </summary>
     [PatchShim]
     public static class ContractPricePatch
     {
-        private static readonly double JUMP_DRIVE_DISTANCE = 2000000.0;
-        private static readonly float AMOUNT_URANIUM_TO_RECHARGE = 3.75f;
         public static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        private static Random _random = new Random();
+
+        /// <summary>The patched methods: the type, the method, the suffix.</summary>
+        public static readonly (Type Type, string Method, string Suffix)[] Targets =
+        {
+            (typeof(MyContractTypeAcquisitionStrategy), "GetMoneyRewardForAcquisitionContract", nameof(AcquisitionSuffix)),
+            (typeof(MyContractTypeEscortStrategy), "GetMoneyReward_Escort", nameof(EscortSuffix)),
+            // used by the hauling of a package and of a grid
+            (typeof(MyContractTypeBaseStrategy), "GetHaulingMoneyReward", nameof(HaulingSuffix)),
+            (typeof(MyContractTypeRepairStrategy), "GetMoneyRewardForRepairContract", nameof(RepairSuffix)),
+        };
+
+        private const BindingFlags Any = BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
+
         public static void Patch(PatchContext ctx) => global::SentisOptimisations.PatchGuard.Run("ContractPricePatch", ctx, PatchImpl);
 
         internal static void PatchImpl(PatchContext ctx)
         {
-            // Each registration is independent: a target removed by a game update only
-            // disables its own contract tweak instead of the whole shim.
-            TryRegister(ctx, nameof(PatchGetMoneyRewardForAcquisitionContract), () =>
+            // Each target on its own: one removed by a game update only disables its own multiplier.
+            foreach (var (type, method, suffix) in Targets)
             {
-            var MethodGetMoneyRewardForAcquisitionContract = typeof(MyContractTypeAcquisitionStrategy).GetMethod(
-                "GetMoneyRewardForAcquisitionContract",
-                BindingFlags.Instance | BindingFlags.NonPublic);
-
-            ctx.GetPattern(MethodGetMoneyRewardForAcquisitionContract).Suffixes.Add(
-                typeof(ContractPricePatch).GetMethod(nameof(PatchGetMoneyRewardForAcquisitionContract),
-                    BindingFlags.Static | BindingFlags.Instance | BindingFlags.NonPublic));
-            }, "GetMoneyRewardForAcquisitionContract");
-
-            TryRegister(ctx, nameof(PatchGetMoneyReward_Escort), () =>
-            {
-            var MethodGetMoneyReward_Escort = typeof(MyContractTypeEscortStrategy).GetMethod("GetMoneyReward_Escort",
-                BindingFlags.Instance | BindingFlags.NonPublic);
-
-            ctx.GetPattern(MethodGetMoneyReward_Escort).Suffixes.Add(
-                typeof(ContractPricePatch).GetMethod(nameof(PatchGetMoneyReward_Escort),
-                    BindingFlags.Static | BindingFlags.Instance | BindingFlags.NonPublic));
-            }, "GetMoneyReward_Escort");
-
-            TryRegister(ctx, nameof(PatchGetMoneyRewardForHaulingContract), () =>
-            {
-            // Moved from MyContractTypeHaulingStrategy.GetMoneyRewardForHaulingContract to the base strategy.
-            var MethodGetHaulingMoneyReward = typeof(MyContractTypeBaseStrategy).GetMethod(
-                "GetHaulingMoneyReward",
-                BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
-
-            ctx.GetPattern(MethodGetHaulingMoneyReward).Suffixes.Add(
-                typeof(ContractPricePatch).GetMethod(nameof(PatchGetMoneyRewardForHaulingContract),
-                    BindingFlags.Static | BindingFlags.Instance | BindingFlags.NonPublic));
-            }, "GetMoneyRewardForHaulingContract");
-
-            TryRegister(ctx, nameof(PatchGetMoneyRewardForRepairContract), () =>
-            {
-            var MethodGetMoneyRewardForRepairContract = typeof(MyContractTypeRepairStrategy).GetMethod(
-                "GetMoneyRewardForRepairContract",
-                BindingFlags.Instance | BindingFlags.NonPublic);
-
-            ctx.GetPattern(MethodGetMoneyRewardForRepairContract).Suffixes.Add(
-                typeof(ContractPricePatch).GetMethod(nameof(PatchGetMoneyRewardForRepairContract),
-                    BindingFlags.Static | BindingFlags.Instance | BindingFlags.NonPublic));
-            }, "GetMoneyRewardForRepairContract");
-        }
-
-        private static void TryRegister(PatchContext ctx, string suffixName, Action register, string targetName)
-        {
-            try
-            {
-                register();
-            }
-            catch (Exception e)
-            {
-                Log.Warn(e, $"Contract price target '{targetName}' not patchable; suffix '{suffixName}' skipped.");
-            }
-        }
-
-        private static void PatchGetMoneyRewardForAcquisitionContract(ref long __result, long baseRew, int amount)
-        {
-            try
-            {
-                __result = (long) (baseRew * Math.Pow(2.0, Math.Log10(amount)) *
-                                   SentisGameplayImprovementsPlugin.Config.ContractAcquisitionMultiplier);
-            }
-            catch (Exception e)
-            {
-                Log.Error("Exception in time PatchGetMoneyRewardForAcquisitionContract", e);
-            }
-        }
-
-        private static void PatchGetMoneyReward_Escort(ref long __result, long baseRew, double distance)
-        {
-            try
-            {
-                __result = (long) (baseRew * Math.Pow(3.0, Math.Log10(distance)) *
-                                   SentisGameplayImprovementsPlugin.Config.ContractEscortMultiplier);
-            }
-            catch (Exception e)
-            {
-                Log.Error("Exception in time PatchGetMoneyReward_Escort", e);
-            }
-        }
-
-        // Parameter names must match the target: GetHaulingMoneyReward(long baseReward, double distance, int uraniumPrice)
-        private static void PatchGetMoneyRewardForHaulingContract(ref long __result, long baseReward, double distance,
-            int uraniumPrice)
-        {
-            try
-            {
-                var configContractHaulingtMultiplier = SentisGameplayImprovementsPlugin.Config.ContractHaulingtMultiplier;
-                if (Math.Abs(configContractHaulingtMultiplier - 1) < 0.1)
+                try
                 {
-                    return;
+                    var target = type.GetMethod(method, Any) ?? throw new MissingMethodException(type.FullName, method);
+                    ctx.GetPattern(target).Suffixes.Add(typeof(ContractPricePatch).GetMethod(suffix, BindingFlags.Static | BindingFlags.NonPublic));
                 }
-                double num1 = distance / JUMP_DRIVE_DISTANCE;
-                double num2 = num1 * (uraniumPrice * (double) AMOUNT_URANIUM_TO_RECHARGE);
-                __result = (long) ((baseReward + baseReward * num1 + num2) *
-                                   configContractHaulingtMultiplier);
-            }
-            catch (Exception e)
-            {
-                Log.Error("Exception in time PatchGetMoneyRewardForHaulingContract", e);
+                catch (Exception e)
+                {
+                    Log.Warn(e, "Contract reward '" + type.Name + "." + method + "' not patchable; its multiplier is off.");
+                }
             }
         }
 
-        private static void PatchGetMoneyRewardForRepairContract(ref long __result, long baseRew,
-            double gridDistance,
-            long gridPrice,
-            float gridPriceToRewardcoef)
+        /// <summary>
+        /// The reward times the multiplier, kept between 0 and <see cref="long.MaxValue"/>: a reward that would
+        /// not fit a long no longer wraps into a negative one, and a negative or broken multiplier gives nothing.
+        /// </summary>
+        public static long Scale(long reward, double multiplier)
         {
-            try
-            {
-                var configContractRepairMultiplier = SentisGameplayImprovementsPlugin.Config.ContractRepairMultiplier;
-                if (Math.Abs(configContractRepairMultiplier - 1) < 0.1)
-                {
-                    return;
-                }
-                __result = (long) ((baseRew * Math.Pow(2.0, Math.Log10(gridDistance)) +
-                                    (long) (gridPriceToRewardcoef * (double) gridPrice)) *
-                                   configContractRepairMultiplier);
-            }
-            catch (Exception e)
-            {
-                Log.Error("Exception in time PatchGetMoneyRewardForHaulingContract", e);
-            }
+            var scaled = reward * multiplier;
+            if (double.IsNaN(scaled) || scaled <= 0) return 0;
+            return scaled >= long.MaxValue ? long.MaxValue : (long)scaled;
         }
+
+        private static void AcquisitionSuffix(ref long __result) =>
+            __result = Scale(__result, SentisGameplayImprovementsPlugin.Config.ContractAcquisitionMultiplier);
+
+        private static void EscortSuffix(ref long __result) =>
+            __result = Scale(__result, SentisGameplayImprovementsPlugin.Config.ContractEscortMultiplier);
+
+        private static void HaulingSuffix(ref long __result) =>
+            __result = Scale(__result, SentisGameplayImprovementsPlugin.Config.ContractHaulingtMultiplier);
+
+        private static void RepairSuffix(ref long __result) =>
+            __result = Scale(__result, SentisGameplayImprovementsPlugin.Config.ContractRepairMultiplier);
     }
 }
