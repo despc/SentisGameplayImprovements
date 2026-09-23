@@ -196,9 +196,6 @@
 
   <!-- ================================ Защита от эксплойтов ================================ -->
 
-  <!-- Обнулить массу блоков искусственной массы. -->
-  <DisableArtificialMass>false</DisableArtificialMass>
-
   <!-- Запретить цепляться шасси к кораблям врагов. Сейчас из-за ошибки действует только на
        NPC-корабли врагов (см. README, «Замечания»). -->
   <DisableLockLandingGearOnEnemyShips>false</DisableLockLandingGearOnEnemyShips>

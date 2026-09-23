@@ -80,7 +80,6 @@ namespace SentisGameplayImprovements
         private bool _noDamageFromVoxelsIfNobodyNear = true;
         
         // Protection from assholes
-        private bool _disableArtificialMass = false;
         private bool _disableDetachRotorFromTimer = false;
         private bool _disableLockLandingGearOnEnemyShips = false;
         private bool _disableLockLandingGearOnNPCShips = false;
@@ -367,13 +366,6 @@ namespace SentisGameplayImprovements
         }
         
         // Protection from assholes
-        [DisplayTab(Name = "Disable artificial mass", GroupName = "Protection from assholes", Tab = "Protection from assholes", Order = 99, Description = "Disable artificial mass")]
-        public bool DisableArtificialMass
-        {
-            get => _disableArtificialMass;
-            set => SetValue(ref _disableArtificialMass, value);
-        }
-        
         [DisplayTab(Name = "Disable lock landing gear on enemy", GroupName = "Protection from assholes", Tab = "Protection from assholes", Order = 99, Description = "Disable lock landing gear on enemy")]
         public bool DisableLockLandingGearOnEnemyShips
         {
