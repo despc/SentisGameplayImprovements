@@ -362,44 +362,8 @@ namespace SentisGameplayImprovements
             return mRaycastResult;
         }
 
-        public static bool ConvertToStatic(MyCubeGrid grid)
-        {
-            try
-            {
-                grid.Physics?.SetSpeeds(Vector3.Zero, Vector3.Zero);
-                grid.ConvertToStatic();
-                try
-                {
-                    MyMultiplayer.RaiseEvent(grid, x => x.ConvertToStatic);
-                    DelayedProcessor.Instance.AddDelayedAction(
-                        DateTime.Now.AddMilliseconds(MyRandom.Instance.Next(300, 1000)), () =>
-                        {
-                            MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                            {
-                                try
-                                {
-                                    List<MyCubeGrid> groupNodes =
-                                        MyCubeGridGroups.Static.GetGroups(GridLinkTypeEnum.Logical).GetGroupNodes(grid);
-                                    FixShipLogic.FixGroups(groupNodes);
-                                }
-                                catch
-                                {
-                                }
-                            });
-                        });
-                }
-                catch (Exception ex)
-                {
-                    Log.Error(ex, "()Exception in RaiseEvent.");
-                }
-
-                return true;
-            }
-            catch (Exception e)
-            {
-                return false;
-            }
-        }
+        /// <summary>Makes the grid static on the server and the clients, in place.</summary>
+        public static bool ConvertToStatic(MyCubeGrid grid) => PcuLimiter.ConvertToStatic(grid);
 
         private static bool CheckPermissions(MyCubeGrid grid, long playerIdentity)
         {
@@ -424,31 +388,21 @@ namespace SentisGameplayImprovements
             return false;
         }
 
+        /// <summary>
+        /// Makes the grid dynamic on the server and the clients, in place - as the game does when a player asks
+        /// (the event runs on the server and goes to every client). It used to run the event on the server only
+        /// and then close the group and make it anew (FixGroups) so that the clients saw it.
+        /// </summary>
         public static bool ConvertToDynamic(MyCubeGrid grid)
         {
             try
             {
-                grid.OnConvertToDynamic();
-                DelayedProcessor.Instance.AddDelayedAction(
-                    DateTime.Now.AddMilliseconds(MyRandom.Instance.Next(300, 1000)), () =>
-                    {
-                        MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                        {
-                            try
-                            {
-                                List<MyCubeGrid> groupNodes =
-                                    MyCubeGridGroups.Static.GetGroups(GridLinkTypeEnum.Logical).GetGroupNodes(grid);
-                                FixShipLogic.FixGroups(groupNodes);
-                            }
-                            catch
-                            {
-                            }
-                        });
-                    });
-                return true;
+                MyMultiplayer.RaiseEvent(grid, x => x.OnConvertToDynamic);
+                return !grid.IsStatic;
             }
             catch (Exception e)
             {
+                Log.Error(e, "Converting " + grid.DisplayName + " to dynamic failed");
                 return false;
             }
         }

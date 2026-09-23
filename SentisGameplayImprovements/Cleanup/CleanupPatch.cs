@@ -27,6 +27,20 @@ namespace SentisGameplayImprovements
            
         }
 
+        // the setting split once, not once for every block of every grid that comes into the world
+        private static string _ignoredSetting;
+        private static string[] _ignored = new string[0];
+
+        private static string[] IgnoredSubtypes(string setting)
+        {
+            if (setting != _ignoredSetting)
+            {
+                _ignored = setting.Split(',');
+                _ignoredSetting = setting;
+            }
+            return _ignored;
+        }
+
         private static bool OnEntityAddPatched(MyEntity entity)
         {
             try
@@ -40,20 +54,15 @@ namespace SentisGameplayImprovements
                     return true;
                 }
 
-                var containsIgnoreCleanupBlocks = ((MyCubeGrid)entity).GetFatBlocks().Where(block =>
+                var subtypes = IgnoredSubtypes(configIgnoreCleanupSubtypes);
+                foreach (var block in ((MyCubeGrid)entity).GetFatBlocks())
                 {
-                    foreach (var s in configIgnoreCleanupSubtypes.Split(','))
-                    {
-                        if (block.BlockDefinition.Id.SubtypeName.Contains(s))
-                        {
-                            return true;
-                        }
-                    }
-
-                    return false;
-                }).Any();
-
-                return !containsIgnoreCleanupBlocks;
+                    var subtype = block.BlockDefinition.Id.SubtypeName;
+                    foreach (var ignored in subtypes)
+                        if (subtype.Contains(ignored))
+                            return false;
+                }
+                return true;
             }
             catch (Exception e)
             {

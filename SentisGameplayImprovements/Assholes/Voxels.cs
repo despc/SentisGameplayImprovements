@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using NLog;
@@ -22,8 +22,10 @@ public class Voxels
 
     public static void ProcessVoxelsContacts()
     {
-        foreach (var gridVoxelContactInfo in new Dictionary<long, DamagePatch.GridVoxelContactInfo>(DamagePatch
-                     .contactInfo))
+        // the counts of the last second, taken whole: contacts counted meanwhile go into the new one
+        var contacts = System.Threading.Interlocked.Exchange(ref DamagePatch.contactInfo,
+            new ConcurrentDictionary<long, DamagePatch.GridVoxelContactInfo>());
+        foreach (var gridVoxelContactInfo in contacts)
         {
             var entityId = gridVoxelContactInfo.Key;
             var cubeGrid = gridVoxelContactInfo.Value.MyCubeGrid;
@@ -53,37 +55,9 @@ public class Voxels
                         Log.Warn($"Convert stuck grid {cubeGrid.DisplayName} of player {playerName}");
                         NotificationUtils.NotifyAllPlayersAround(cubeGrid.PositionComp.GetPosition(), 200,
                             $"Грид {cubeGrid.DisplayName} игрока {playerName} конвертирован в статику из-за излишней любви к вокселям");
-                        MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                        {
-                            cubeGrid.Physics?.SetSpeeds(Vector3.Zero, Vector3.Zero);
-                            cubeGrid.ConvertToStatic();
-                            try
-                            {
-                                MyMultiplayer.RaiseEvent(cubeGrid,
-                                    x => x.ConvertToStatic);
-                                DelayedProcessor.Instance.AddDelayedAction(
-                                    DateTime.Now.AddMilliseconds(MyRandom.Instance.Next(300, 1000)), () =>
-                                    {
-                                        MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                                        {
-                                            try
-                                            {
-                                                List<MyCubeGrid> groupNodes =
-                                                    MyCubeGridGroups.Static.GetGroups(GridLinkTypeEnum.Logical)
-                                                        .GetGroupNodes(cubeGrid);
-                                                FixShipLogic.FixGroups(groupNodes);
-                                            }
-                                            catch
-                                            {
-                                            }
-                                        });
-                                    });
-                            }
-                            catch (Exception ex)
-                            {
-                                Log.Error(ex, "()Exception in RaiseEvent.");
-                            }
-                        });
+                        // made static in place: the grid is not closed and made anew (FixGroups), which
+                        // gave every grid of the group a new id and could lose or copy one
+                        MyAPIGateway.Utilities.InvokeOnGameThread(() => PcuLimiter.ConvertToStatic(cubeGrid));
                     }
                     else
                     {
@@ -120,6 +94,5 @@ public class Voxels
             StuckGrids[entityId] = 1;
         }
 
-        DamagePatch.contactInfo.Clear();
     }
 }

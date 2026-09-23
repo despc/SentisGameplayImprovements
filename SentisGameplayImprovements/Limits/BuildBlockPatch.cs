@@ -1,19 +1,27 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
-using System.Threading.Tasks;
-using NLog.Fluent;
 using Sandbox.Definitions;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Cube;
+using Sandbox.Game.World;
+using Sandbox.ModAPI;
 using SentisGameplayImprovements.DelayedLogic;
 using Torch.Managers.PatchManager;
-using VRage.Game.ModAPI;
 using VRage.Network;
 
 namespace SentisGameplayImprovements
 {
+    /// <summary>
+    /// A player placing blocks (<c>MyCubeGrid.BuildBlocksRequest</c>):
+    /// <list type="bullet">
+    /// <item>on an NPC grid - refused unless an admin, with <c>DisableBuildBlockOnNPC</c>;</item>
+    /// <item>a grid with no beacon - the players around are told, 2 seconds later, that the cleanup will remove it
+    /// (<c>EnableCheckBeacon</c>);</item>
+    /// <item>over the PCU limit of the group with the blocks placed - the player is told (<c>EnabledPcuLimiter</c>).
+    /// The block is still placed; <see cref="PcuLimiter"/> enforces the limit.</item>
+    /// </list>
+    /// </summary>
     [PatchShim]
     public static class BuildBlockPatch
     {
@@ -23,107 +31,66 @@ namespace SentisGameplayImprovements
         {
             MethodInfo method = typeof(MyCubeGrid).GetMethod("BuildBlocksRequest",
                 BindingFlags.Instance | BindingFlags.Static | BindingFlags.Public | BindingFlags.NonPublic);
-            ctx.GetPattern(method).Prefixes.Add(typeof(BuildBlockPatch).GetMethod("BuildBlocksRequest",
+            ctx.GetPattern(method).Prefixes.Add(typeof(BuildBlockPatch).GetMethod(nameof(BuildBlocksRequest),
                 BindingFlags.Instance | BindingFlags.Static | BindingFlags.NonPublic));
         }
 
-        private static bool BuildBlocksRequest(
-            MyCubeGrid __instance,
-            HashSet<MyCubeGrid.MyBlockLocation> locations)
+        private static bool BuildBlocksRequest(MyCubeGrid __instance, HashSet<MyCubeGrid.MyBlockLocation> locations)
         {
-            if (SentisGameplayImprovementsPlugin.Config.DisableBuildBlockOnNPC && __instance.IsNpcGrid())
-            {
-                try
-                {
-                    ulong steamId = MyEventContext.Current.Sender.Value;
-                    if (!PlayerUtils.IsAdmin(PlayerUtils.GetPlayer(steamId).IdentityId))
-                    {
-                        return false;
-                    }
-                }
-                catch (Exception e)
-                {
-                    SentisGameplayImprovementsPlugin.Log.Error(e, "Build block Exception ");
-                }
-            }
-            
+            if (__instance == null) return true;
+            var identityId = SenderIdentity();
+            var config = SentisGameplayImprovementsPlugin.Config;
+            if (config.DisableBuildBlockOnNPC && identityId != 0 && __instance.IsNpcGrid() && !PlayerUtils.IsAdmin(identityId))
+                return false;
+
             DelayedProcessor.Instance.AddDelayedAction(DateTime.Now.AddSeconds(2), () =>
-            {
-                if (__instance != null)
+                MyAPIGateway.Utilities.InvokeOnGameThread(() =>
                 {
                     try
                     {
-                        CheckBeacon(__instance);
+                        if (!__instance.MarkedForClose) CheckBeacon(__instance);
                     }
-                    catch (InvalidOperationException ignore){}
-                }
-            });
-            if (!SentisGameplayImprovementsPlugin.Config.EnabledPcuLimiter)
-                return true;
-            if (__instance == null)
+                    catch (Exception e)
+                    {
+                        SentisGameplayImprovementsPlugin.Log.Warn(e, "Beacon check failed");
+                    }
+                }));
+
+            if (!config.EnabledPcuLimiter || identityId == 0 || __instance.IsNpcGrid()) return true;
+            try
             {
-                SentisGameplayImprovementsPlugin.Log.Warn("BuildBlocksRequest: Grid is NULL.");
-                return true;
+                var placed = 0;
+                foreach (var location in locations)
+                    placed += MyDefinitionManager.Static.GetCubeBlockDefinition(location.BlockDefinition)?.PCU ?? 0;
+                // the game's count first: never below the exact one, and it costs nothing
+                var upperBound = PcuLimiter.GroupPcu(__instance, false, out var hasStatic) + placed;
+                var limit = hasStatic ? config.MaxStaticGridPCU : config.MaxDinamycGridPCU;
+                if (upperBound <= limit) return true;
+                var pcu = PcuLimiter.GroupPcu(__instance, true, out _) + placed;
+                if (pcu > limit) PcuLimiter.SendLimitMessage(identityId, pcu, limit, __instance.DisplayName);
             }
-            if (MyDefinitionManager.Static.GetCubeBlockDefinition(
-                locations.FirstOrDefault().BlockDefinition) == null)
+            catch (Exception e)
             {
-                SentisGameplayImprovementsPlugin.Log.Warn("BuildBlocksRequest: Definition is NULL.");
-                return true;
+                SentisGameplayImprovementsPlugin.Log.Warn(e, "PCU check on building failed");
             }
-            long identityId = PlayerUtils.GetIdentityByNameOrId(MyEventContext.Current.Sender.Value.ToString())
-                .IdentityId;
-            var instanceIsStatic = __instance.IsStatic;
-            var maxPcu = instanceIsStatic
-                ? SentisGameplayImprovementsPlugin.Config.MaxStaticGridPCU
-                : SentisGameplayImprovementsPlugin.Config.MaxDinamycGridPCU;
-            var subGrids = GridUtils.GetSubGrids(__instance,
-                SentisGameplayImprovementsPlugin.Config.IncludeConnectedGrids);
-            foreach (var myCubeGrid in subGrids)
-            {
-                if (myCubeGrid.IsStatic)
-                {
-                    maxPcu = SentisGameplayImprovementsPlugin.Config.MaxStaticGridPCU;
-                }
-            }
-            Task.Run(() =>
-            {
-                var pcu = GridUtils.GetPCU((IMyCubeGrid)__instance, true,
-                    SentisGameplayImprovementsPlugin.Config.IncludeConnectedGrids);
-                MyCubeBlockDefinition cubeBlockDefinition = MyDefinitionManager.Static.GetCubeBlockDefinition(locations.First().BlockDefinition);
-                pcu = pcu + cubeBlockDefinition.PCU;
-            
-                if (pcu > maxPcu)
-                {
-                    PcuLimiter.SendLimitMessage(identityId, pcu, maxPcu, __instance.DisplayName);
-                }
-            });
-            
             return true;
+        }
+
+        /// <summary>The identity of the player who sent the request; 0 when there is none (the server itself).</summary>
+        private static long SenderIdentity()
+        {
+            var sender = MyEventContext.Current.Sender.Value;
+            return sender == 0 ? 0 : MySession.Static.Players.TryGetIdentityId(sender);
         }
 
         private static void CheckBeacon(MyCubeGrid grid)
         {
-
-            if (!SentisGameplayImprovementsPlugin.Config.EnableCheckBeacon)
+            if (!SentisGameplayImprovementsPlugin.Config.EnableCheckBeacon) return;
+            if (grid.GetFirstBlockOfType<MyBeacon>() != null) return;
+            foreach (var subGrid in GridUtils.GetSubGrids(grid))
             {
-                return;
+                if (((MyCubeGrid)subGrid).GetFirstBlockOfType<MyBeacon>() != null) return;
             }
-            var myCubeGrids = GridUtils.GetSubGrids(grid);
-            foreach (var myCubeGrid in myCubeGrids)
-            {
-                var beacon = ((MyCubeGrid)myCubeGrid).GetFirstBlockOfType<MyBeacon>();
-                if (beacon != null)
-                {
-                    return;
-                }
-            }
-            var beacon2 = grid.GetFirstBlockOfType<MyBeacon>();
-            if (beacon2 != null)
-            {
-                return;
-            }
-
             NotificationUtils.NotifyAllPlayersAround(grid.PositionComp.GetPosition(), 50, "На постройке " + grid.DisplayName + " не установлен маяк");
             NotificationUtils.NotifyAllPlayersAround(grid.PositionComp.GetPosition(), 50, "она будет удалена при следующей очистке");
         }

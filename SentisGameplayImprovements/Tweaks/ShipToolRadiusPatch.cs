@@ -1,9 +1,11 @@
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 using System.Threading;
 using Sandbox.Definitions;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Weapons;
+using Sandbox.Game.World;
 using Sandbox.ModAPI;
 using SentisGameplayImprovements.AllGridsActions;
 using SpaceEngineers.Game.Entities.Blocks;
@@ -69,45 +71,71 @@ namespace SentisGameplayImprovements.Tweaks
             return Math.Max(MinMultiplier, value);
         }
 
-        /// <summary>Queues one coalesced refresh for every currently loaded ship tool.</summary>
+        // A refresh goes over the world's blocks this many a frame, not all in one.
+        private const int BlocksPerFrame = 20000;
+        // A refresh asked for while one runs: the grids done already would keep the old multipliers.
+        private static int _again;
+        private static List<MyCubeGrid> _grids = new List<MyCubeGrid>();
+        private static int _cursor;
+
+        /// <summary>Queues one coalesced refresh for every currently loaded ship tool, spread over frames.</summary>
         public static void ApplyAllAsync()
         {
             var utilities = MyAPIGateway.Utilities;
             if (utilities == null || !SentisGameplayImprovementsPlugin.TryGetConfig(out _))
                 return;
             if (Interlocked.Exchange(ref _refreshQueued, 1) != 0)
-                return;
-
-            utilities.InvokeOnGameThread(() =>
             {
-                try
-                {
-                    ApplyAll();
-                }
-                catch (Exception e)
-                {
-                    SentisGameplayImprovementsPlugin.Log.Error(e,
-                        "Failed to apply ship-tool radius multipliers");
-                }
-                finally
-                {
-                    Volatile.Write(ref _refreshQueued, 0);
-                }
-            });
+                Volatile.Write(ref _again, 1);
+                return;
+            }
+            utilities.InvokeOnGameThread(StartRefresh);
         }
 
-        private static void ApplyAll()
+        private static void StartRefresh()
         {
-            if (!SentisGameplayImprovementsPlugin.TryGetConfig(out _))
-                return;
+            Volatile.Write(ref _again, 0);
+            _grids = new List<MyCubeGrid>(EntitiesObserver.MyCubeGrids);
+            _cursor = 0;
+            RefreshStep();
+        }
 
-            foreach (var grid in EntitiesObserver.MyCubeGrids)
+        /// <summary>The next <see cref="BlocksPerFrame"/> blocks; then the next frame. Game thread.</summary>
+        private static void RefreshStep()
+        {
+            try
             {
-                if (grid == null || grid.MarkedForClose)
-                    continue;
-                foreach (var block in grid.GetFatBlocks())
-                    ApplyToBlock(block);
+                var blocks = 0;
+                while (_cursor < _grids.Count && blocks < BlocksPerFrame)
+                {
+                    var grid = _grids[_cursor++];
+                    if (grid == null || grid.MarkedForClose)
+                        continue;
+                    var fatBlocks = grid.GetFatBlocks();
+                    foreach (var block in fatBlocks)
+                        ApplyToBlock(block);
+                    blocks += fatBlocks.Count + 1;
+                }
             }
+            catch (Exception e)
+            {
+                SentisGameplayImprovementsPlugin.Log.Error(e, "Failed to apply ship-tool radius multipliers");
+                _cursor = _grids.Count;
+            }
+
+            var nextFrame = (MySession.Static?.GameplayFrameCounter ?? 0) + 1;
+            if (_cursor < _grids.Count)
+            {
+                MyAPIGateway.Utilities.InvokeOnGameThread(RefreshStep, StartAt: nextFrame);
+                return;
+            }
+            _grids = new List<MyCubeGrid>();
+            if (Interlocked.Exchange(ref _again, 0) != 0)
+            {
+                MyAPIGateway.Utilities.InvokeOnGameThread(StartRefresh, StartAt: nextFrame);
+                return;
+            }
+            Volatile.Write(ref _refreshQueued, 0);
         }
 
         /// <summary>Applies the current multipliers to one tool block. Runs on the game thread.</summary>

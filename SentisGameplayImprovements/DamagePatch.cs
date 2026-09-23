@@ -28,7 +28,9 @@ namespace SentisGameplayImprovements
     public static class DamagePatch
     {
         public static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        public static Dictionary<long, GridVoxelContactInfo> contactInfo = new Dictionary<long, GridVoxelContactInfo>();
+        // written from the physics callbacks, taken whole once a second by Voxels.ProcessVoxelsContacts
+        public static System.Collections.Concurrent.ConcurrentDictionary<long, GridVoxelContactInfo> contactInfo =
+            new System.Collections.Concurrent.ConcurrentDictionary<long, GridVoxelContactInfo>();
         public static HashSet<long> ProtectedChars = new HashSet<long>();
         private static bool _init;
 
@@ -116,14 +118,8 @@ namespace SentisGameplayImprovements
                     {
                         try
                         {
-                            if (contactInfo.ContainsKey(cubeGrid.EntityId))
-                            {
-                                contactInfo[cubeGrid.EntityId].Count++;
-                            }
-                            else
-                            {
-                                contactInfo[cubeGrid.EntityId] = new GridVoxelContactInfo(cubeGrid, 1);
-                            }
+                            var info = contactInfo.GetOrAdd(cubeGrid.EntityId, _ => new GridVoxelContactInfo(cubeGrid, 0));
+                            System.Threading.Interlocked.Increment(ref info.Count);
                         }
                         catch (Exception e)
                         {

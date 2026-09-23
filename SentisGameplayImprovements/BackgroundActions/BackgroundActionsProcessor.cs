@@ -13,7 +13,6 @@ namespace SentisGameplayImprovements.BackgroundActions
     public class BackgroundActionsProcessor
     {
         public static FallInVoxelDetector FallInVoxelDetector = new FallInVoxelDetector();
-        private GridAutoRenamer _autoRenamer = new GridAutoRenamer();
         private OnlineReward _onlineReward = new OnlineReward();
 
         public static readonly Logger Log = LogManager.GetCurrentClassLogger();
@@ -28,6 +27,7 @@ namespace SentisGameplayImprovements.BackgroundActions
             Task.Run(FastCheckLoop);
             Task.Run(NotSoFastFastCheckLoop);
             Task.Run(FallThroughLoop);
+            Task.Run(GameThreadSlicesLoop);
         }
 
         public void OnUnloading()
@@ -73,6 +73,29 @@ namespace SentisGameplayImprovements.BackgroundActions
                 catch (Exception e)
                 {
                     Log.Error(e, "FallThroughLoop error");
+                }
+            }
+        }
+
+        private readonly GridSweep _gridSweep = new GridSweep();
+
+        /// <summary>Hands a slice of the PCU limit check and of the grid sweep to the game thread every 100 ms.</summary>
+        public void GameThreadSlicesLoop()
+        {
+            while (!CancellationTokenSource.Token.IsCancellationRequested)
+            {
+                try
+                {
+                    Thread.Sleep(100);
+                    var config = SentisGameplayImprovementsPlugin.Config;
+                    if (config.EnabledPcuLimiter)
+                        MyAPIGateway.Utilities.InvokeOnGameThread(SentisGameplayImprovementsPlugin._limiter.CheckSlice);
+                    if (config.AutoRenameGrids || config.DisableNoOwner)
+                        MyAPIGateway.Utilities.InvokeOnGameThread(_gridSweep.CheckSlice);
+                }
+                catch (Exception e)
+                {
+                    Log.Error(e, "GameThreadSlicesLoop error");
                 }
             }
         }
@@ -125,7 +148,6 @@ namespace SentisGameplayImprovements.BackgroundActions
                     {
                         counter++;
                         await Task.Delay(30000);
-                        await Task.Run(CheckAllGrids);
                         await Task.Run(() =>
                         {
                             try
@@ -150,63 +172,5 @@ namespace SentisGameplayImprovements.BackgroundActions
             }
         }
 
-        private void CheckAllGrids()
-        {
-            try
-            {
-                foreach (var grid in new HashSet<MyCubeGrid>(EntitiesObserver.MyCubeGrids))
-                {
-                    if (CancellationTokenSource.Token.IsCancellationRequested)
-                        break;
-                    if (grid == null)
-                    {
-                        continue;
-                    }
-
-                    if (SentisGameplayImprovementsPlugin.Config.EnabledPcuLimiter)
-                    {
-                        SentisGameplayImprovementsPlugin._limiter.CheckGrid(grid);
-                    }
-
-                    if (SentisGameplayImprovementsPlugin.Config.AutoRenameGrids)
-                    {
-                        _autoRenamer.CheckAndRename(grid);
-                    }
-
-                    if (SentisGameplayImprovementsPlugin.Config.DisableNoOwner)
-                    {
-                        CheckNobodyOwner(grid);
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                Log.Error(e);
-            }
-        }
-
-        private void CheckNobodyOwner(MyCubeGrid grid)
-        {
-            foreach (var myCubeBlock in grid.GetFatBlocks())
-            {
-                if (myCubeBlock.BlockDefinition.OwnershipIntegrityRatio != 0 && myCubeBlock.OwnerId == 0)
-                {
-                    MyAPIGateway.Utilities.InvokeOnGameThread(() =>
-                    {
-                        try
-                        {
-                            if (myCubeBlock is IMyFunctionalBlock)
-                            {
-                                ((IMyFunctionalBlock)myCubeBlock).Enabled = false;
-                            }
-                        }
-                        catch (Exception e)
-                        {
-                            Log.Warn("Prevent crash", e);
-                        }
-                    });
-                }
-            }
-        }
     }
 }
