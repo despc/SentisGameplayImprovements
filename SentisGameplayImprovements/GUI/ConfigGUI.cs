@@ -1,6 +1,5 @@
-using System.Windows;
 using System.Windows.Controls;
-using System.Windows.Media;
+using SentisGameplayImprovements;
 
 namespace SOPlugin.GUI
 {
@@ -12,7 +11,7 @@ namespace SOPlugin.GUI
         public ConfigGUI()
         {
             BuildUi();
-            MainFilteredGrid.DataContext = SentisGameplayImprovements.SentisGameplayImprovementsPlugin.Config;
+            MainFilteredGrid.DataContext = SentisGameplayImprovementsPlugin.Config;
         }
 
         private void BuildUi()

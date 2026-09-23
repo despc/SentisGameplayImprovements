@@ -7,6 +7,7 @@ using NLog;
 using Sandbox.Game.Multiplayer;
 using Sandbox.Game.World;
 using Sandbox.ModAPI;
+using SentisOptimisations;
 using Torch.Managers.PatchManager;
 using VRage.Game.Definitions.Reputation;
 using VRage.Game.ModAPI;
@@ -21,7 +22,7 @@ namespace SentisGameplayImprovements
         public static readonly Logger Log = LogManager.GetCurrentClassLogger();
         private static readonly Random Random = new Random();
 
-        public static void Patch(PatchContext ctx) => global::SentisOptimisations.PatchGuard.Run("ReputationPatch", ctx, PatchImpl);
+        public static void Patch(PatchContext ctx) => PatchGuard.Run("ReputationPatch", ctx, PatchImpl);
 
         internal static void PatchImpl(PatchContext ctx)
         {

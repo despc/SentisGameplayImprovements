@@ -11,7 +11,6 @@ using Sandbox.ModAPI;
 using SpaceEngineers.Game.Entities.Blocks;
 using SpaceEngineers.Game.Entities.Blocks.SafeZone;
 using VRage.Game;
-using VRage.Game.ModAPI;
 using VRageMath;
 
 namespace SentisGameplayImprovements

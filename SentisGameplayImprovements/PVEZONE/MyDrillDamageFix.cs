@@ -2,6 +2,7 @@ using System.Reflection;
 using NAPI;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Weapons;
+using SentisOptimisations;
 using Torch.Managers.PatchManager;
 
 namespace SentisGameplayImprovements.PveZone
@@ -17,7 +18,7 @@ namespace SentisGameplayImprovements.PveZone
     {
         private static FieldInfo drillEntity;
 
-        public static void Patch(PatchContext ctx) => global::SentisOptimisations.PatchGuard.Run("MyDrillDamageFix", ctx, PatchImpl);
+        public static void Patch(PatchContext ctx) => PatchGuard.Run("MyDrillDamageFix", ctx, PatchImpl);
 
         internal static void PatchImpl(PatchContext ctx)
         {

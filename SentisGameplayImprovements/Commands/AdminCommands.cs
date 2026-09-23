@@ -1,26 +1,13 @@
 using System;
-using System.Linq;
 using System.Reflection;
-using System.Threading;
-using System.Threading.Tasks;
 using NAPI;
 using NLog;
-using Sandbox.Definitions;
-using Sandbox.Engine.Voxels;
-using Sandbox.Game.Entities;
 using Sandbox.Game.SessionComponents;
 using Sandbox.Game.World;
-using Sandbox.ModAPI;
-using SentisGameplayImprovements.DelayedLogic;
 using Torch.Commands;
 using Torch.Commands.Permissions;
-using VRage;
-using VRage.Game;
 using VRage.Game.Definitions.SessionComponents;
 using VRage.Game.ModAPI;
-using VRage.ObjectBuilders;
-using VRage.Voxels;
-using VRageMath;
 
 namespace SentisGameplayImprovements
 {

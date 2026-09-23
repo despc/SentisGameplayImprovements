@@ -2,6 +2,7 @@ using System;
 using System.Reflection;
 using NLog;
 using Sandbox.Game.World.Generator;
+using SentisOptimisations;
 using Torch.Managers.PatchManager;
 
 namespace SentisGameplayImprovements
@@ -35,7 +36,7 @@ namespace SentisGameplayImprovements
 
         private const BindingFlags Any = BindingFlags.Static | BindingFlags.Instance | BindingFlags.Public | BindingFlags.NonPublic;
 
-        public static void Patch(PatchContext ctx) => global::SentisOptimisations.PatchGuard.Run("ContractPricePatch", ctx, PatchImpl);
+        public static void Patch(PatchContext ctx) => PatchGuard.Run("ContractPricePatch", ctx, PatchImpl);
 
         internal static void PatchImpl(PatchContext ctx)
         {

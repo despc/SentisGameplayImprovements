@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.Reflection;
 using NLog;
 using Sandbox.Game.World;
+using SentisOptimisations;
 using Torch.Managers.PatchManager;
 
 namespace SentisGameplayImprovements
@@ -12,7 +13,7 @@ namespace SentisGameplayImprovements
     {
         public static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        public static void Patch(PatchContext ctx) => global::SentisOptimisations.PatchGuard.Run("NpcPatches", ctx, PatchImpl);
+        public static void Patch(PatchContext ctx) => PatchGuard.Run("NpcPatches", ctx, PatchImpl);
 
         internal static void PatchImpl(PatchContext ctx)
         {

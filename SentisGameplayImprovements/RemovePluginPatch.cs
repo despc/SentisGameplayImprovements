@@ -6,6 +6,7 @@ using Sandbox.Engine.Multiplayer;
 using Sandbox.Game.Entities;
 using Sandbox.Game.World;
 using Sandbox.ModAPI;
+using SentisOptimisations;
 using Torch.Managers.PatchManager;
 using VRage.Game;
 using VRage.Game.ModAPI;
@@ -19,7 +20,7 @@ namespace SentisGameplayImprovements
     {
         public static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        public static void Patch(PatchContext ctx) => global::SentisOptimisations.PatchGuard.Run("RemovePluginPatch", ctx, PatchImpl);
+        public static void Patch(PatchContext ctx) => PatchGuard.Run("RemovePluginPatch", ctx, PatchImpl);
 
         internal static void PatchImpl(PatchContext ctx)
         {

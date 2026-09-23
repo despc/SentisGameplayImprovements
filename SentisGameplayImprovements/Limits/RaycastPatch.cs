@@ -1,5 +1,6 @@
 using System.Reflection;
 using Sandbox.Game.Entities;
+using SentisOptimisations;
 using Torch.Managers.PatchManager;
 
 namespace SentisGameplayImprovements
@@ -7,7 +8,7 @@ namespace SentisGameplayImprovements
     [PatchShim]
     public static class RaycastPatch
     {
-        public static void Patch(PatchContext ctx) => global::SentisOptimisations.PatchGuard.Run("RaycastPatch", ctx, PatchImpl);
+        public static void Patch(PatchContext ctx) => PatchGuard.Run("RaycastPatch", ctx, PatchImpl);
 
         internal static void PatchImpl(PatchContext ctx)
         {

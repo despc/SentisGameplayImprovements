@@ -1,26 +1,20 @@
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Linq;
 using System.Reflection;
+using System.Threading;
 using Havok;
 using NLog;
 using Sandbox;
-using Sandbox.Definitions;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Cube;
-using Sandbox.Game.World;
 using Sandbox.ModAPI;
-using SentisGameplayImprovements.DelayedLogic;
 using SentisGameplayImprovements.Loot;
 using SentisGameplayImprovements.PveZone;
+using SentisOptimisations;
 using Torch.Managers.PatchManager;
-using VRage.Game;
-using VRage.Game.Components;
 using VRage.Game.Entity;
 using VRage.Game.ModAPI;
-using VRage.ObjectBuilders.Private;
-using VRage.Utils;
-using VRageMath;
 
 namespace SentisGameplayImprovements
 {
@@ -29,8 +23,8 @@ namespace SentisGameplayImprovements
     {
         public static readonly Logger Log = LogManager.GetCurrentClassLogger();
         // written from the physics callbacks, taken whole once a second by Voxels.ProcessVoxelsContacts
-        public static System.Collections.Concurrent.ConcurrentDictionary<long, GridVoxelContactInfo> contactInfo =
-            new System.Collections.Concurrent.ConcurrentDictionary<long, GridVoxelContactInfo>();
+        public static ConcurrentDictionary<long, GridVoxelContactInfo> contactInfo =
+            new ConcurrentDictionary<long, GridVoxelContactInfo>();
         public static HashSet<long> ProtectedChars = new HashSet<long>();
         private static bool _init;
 
@@ -79,7 +73,7 @@ namespace SentisGameplayImprovements
 
         
 
-        public static void Patch(PatchContext ctx) => global::SentisOptimisations.PatchGuard.Run("DamagePatch", ctx, PatchImpl);
+        public static void Patch(PatchContext ctx) => PatchGuard.Run("DamagePatch", ctx, PatchImpl);
 
         internal static void PatchImpl(PatchContext ctx)
         {
@@ -119,7 +113,7 @@ namespace SentisGameplayImprovements
                         try
                         {
                             var info = contactInfo.GetOrAdd(cubeGrid.EntityId, _ => new GridVoxelContactInfo(cubeGrid, 0));
-                            System.Threading.Interlocked.Increment(ref info.Count);
+                            Interlocked.Increment(ref info.Count);
                         }
                         catch (Exception e)
                         {

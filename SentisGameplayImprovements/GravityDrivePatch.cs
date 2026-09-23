@@ -3,8 +3,10 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
 using System.Reflection.Emit;
+using System.Threading;
 using NLog;
 using Sandbox.Game.Entities;
+using SentisOptimisations;
 using SpaceEngineers.Game.Entities.Blocks;
 using Torch.Managers.PatchManager;
 using Torch.Managers.PatchManager.MSIL;
@@ -36,7 +38,7 @@ namespace SentisGameplayImprovements
         private static readonly MethodInfo AddForce = typeof(MyPhysicsComponentBase).GetMethod(nameof(MyPhysicsComponentBase.AddForce),
             new[] { typeof(MyPhysicsForceType), typeof(Vector3?), typeof(Vector3D?), typeof(Vector3?), typeof(float?), typeof(bool), typeof(bool) });
 
-        public static void Patch(PatchContext ctx) => global::SentisOptimisations.PatchGuard.Run("GravityDrivePatch", ctx, PatchImpl);
+        public static void Patch(PatchContext ctx) => PatchGuard.Run("GravityDrivePatch", ctx, PatchImpl);
 
         internal static void PatchImpl(PatchContext ctx)
         {
@@ -83,7 +85,7 @@ namespace SentisGameplayImprovements
             {
                 if (physics?.Entity is MyCubeGrid massGrid && generator?.CubeGrid != null && OneBody(massGrid, generator.CubeGrid))
                 {
-                    System.Threading.Interlocked.Increment(ref Dropped);
+                    Interlocked.Increment(ref Dropped);
                     return;
                 }
             }

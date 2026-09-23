@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
@@ -28,15 +29,15 @@ namespace NAPI
 
     // Members of a loaded Type never change: cache the (Type, name) resolutions because the
     // ship-tool/replication hot paths resolve the same members every tick.
-    private static readonly System.Collections.Concurrent.ConcurrentDictionary<Type, System.Collections.Concurrent.ConcurrentDictionary<string, FieldInfo>> FieldCache =
-    new System.Collections.Concurrent.ConcurrentDictionary<Type, System.Collections.Concurrent.ConcurrentDictionary<string, FieldInfo>>();
+    private static readonly ConcurrentDictionary<Type, ConcurrentDictionary<string, FieldInfo>> FieldCache =
+    new ConcurrentDictionary<Type, ConcurrentDictionary<string, FieldInfo>>();
 
-    private static readonly System.Collections.Concurrent.ConcurrentDictionary<Type, System.Collections.Concurrent.ConcurrentDictionary<string, MethodInfo>> MethodCache =
-    new System.Collections.Concurrent.ConcurrentDictionary<Type, System.Collections.Concurrent.ConcurrentDictionary<string, MethodInfo>>();
+    private static readonly ConcurrentDictionary<Type, ConcurrentDictionary<string, MethodInfo>> MethodCache =
+    new ConcurrentDictionary<Type, ConcurrentDictionary<string, MethodInfo>>();
 
     public static FieldInfo easyField(this Type type, String name)
     {
-        var byName = FieldCache.GetOrAdd(type, _ => new System.Collections.Concurrent.ConcurrentDictionary<string, FieldInfo>());
+        var byName = FieldCache.GetOrAdd(type, _ => new ConcurrentDictionary<string, FieldInfo>());
         FieldInfo cached;
         if (byName.TryGetValue(name, out cached))
         {
@@ -50,7 +51,7 @@ namespace NAPI
 
     public static MethodInfo easyMethod(this Type type, String name, bool needThrow = true)
     {
-        var byName = MethodCache.GetOrAdd(type, _ => new System.Collections.Concurrent.ConcurrentDictionary<string, MethodInfo>());
+        var byName = MethodCache.GetOrAdd(type, _ => new ConcurrentDictionary<string, MethodInfo>());
         MethodInfo cached;
         if (byName.TryGetValue(name, out cached))
         {

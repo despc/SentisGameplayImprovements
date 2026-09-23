@@ -7,6 +7,7 @@ using Sandbox.Game.Entities.Cube;
 using Sandbox.Game.World;
 using Sandbox.ModAPI;
 using SentisGameplayImprovements.DelayedLogic;
+using SentisOptimisations;
 using Torch.Managers.PatchManager;
 using VRage.Network;
 
@@ -25,7 +26,7 @@ namespace SentisGameplayImprovements
     [PatchShim]
     public static class BuildBlockPatch
     {
-        public static void Patch(PatchContext ctx) => global::SentisOptimisations.PatchGuard.Run("BuildBlockPatch", ctx, PatchImpl);
+        public static void Patch(PatchContext ctx) => PatchGuard.Run("BuildBlockPatch", ctx, PatchImpl);
 
         internal static void PatchImpl(PatchContext ctx)
         {

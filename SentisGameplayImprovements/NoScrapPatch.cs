@@ -3,6 +3,7 @@ using System.Linq;
 using System.Reflection;
 using NLog;
 using Sandbox.Game.Entities;
+using SentisOptimisations;
 using Torch.Managers.PatchManager;
 using VRage.Game.Entity;
 
@@ -13,7 +14,7 @@ namespace SentisGameplayImprovements
     {
         public static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        public static void Patch(PatchContext ctx) => global::SentisOptimisations.PatchGuard.Run("NoScrapPatch", ctx, PatchImpl);
+        public static void Patch(PatchContext ctx) => PatchGuard.Run("NoScrapPatch", ctx, PatchImpl);
 
         internal static void PatchImpl(PatchContext ctx)
         {

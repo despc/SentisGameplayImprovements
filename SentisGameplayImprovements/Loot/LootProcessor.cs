@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using NLog;
 using Sandbox.Definitions;
 using Sandbox.Game.Entities;
+using Sandbox.Game.Entities.Character;
 using Sandbox.Game.Entities.Cube;
 using Sandbox.Game.World;
 using Sandbox.ModAPI;
@@ -200,7 +201,7 @@ public static class LootProcessor
                     if (voxel.IsAnyOfPointInside(new[] { at })) return false;
                     break;
                 case MyFloatingObject _:
-                case Sandbox.Game.Entities.Character.MyCharacter _:
+                case MyCharacter _:
                     return false;
             }
         }

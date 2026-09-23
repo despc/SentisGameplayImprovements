@@ -9,6 +9,7 @@ using Sandbox.Game.Entities;
 using Sandbox.Game.Multiplayer;
 using Sandbox.ModAPI;
 using SentisGameplayImprovements.Explosions;
+using SentisOptimisations;
 using Torch.Managers.PatchManager;
 using VRage.Game;
 
@@ -29,7 +30,7 @@ namespace SentisGameplayImprovements
         // crates already told to go off, so the parallel update does not queue one twice
         private static readonly ConcurrentDictionary<long, byte> Detonating = new ConcurrentDictionary<long, byte>();
 
-        public static void Patch(PatchContext ctx) => global::SentisOptimisations.PatchGuard.Run("ExplosionsPatch", ctx, PatchImpl);
+        public static void Patch(PatchContext ctx) => PatchGuard.Run("ExplosionsPatch", ctx, PatchImpl);
 
         internal static void PatchImpl(PatchContext ctx)
         {

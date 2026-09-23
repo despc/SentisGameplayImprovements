@@ -1,9 +1,9 @@
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
-using Sandbox.Game.Entities;
-using Sandbox.Game.Entities.Cube;
 using Sandbox.Engine.Physics;
+using Sandbox.Game.Entities;
 using SentisGameplayImprovements.AllGridsActions;
 using VRage.ModAPI;
 using VRage.Voxels;
@@ -78,18 +78,18 @@ namespace SentisGameplayImprovements.BackgroundActions
         /// </summary>
         public void CheckSlice()
         {
-            var started = System.Diagnostics.Stopwatch.GetTimestamp();
+            var started = Stopwatch.GetTimestamp();
             if (_cursor >= _queue.Count)
             {
                 if ((DateTime.UtcNow - _lastRebuild).TotalSeconds < RebuildSec) return;
-                var rebuildStarted = System.Diagnostics.Stopwatch.GetTimestamp();
+                var rebuildStarted = Stopwatch.GetTimestamp();
                 Rebuild();
-                _rebuildMsMax = Math.Max(_rebuildMsMax, (System.Diagnostics.Stopwatch.GetTimestamp() - rebuildStarted) * 1000.0 / System.Diagnostics.Stopwatch.Frequency);
+                _rebuildMsMax = Math.Max(_rebuildMsMax, (Stopwatch.GetTimestamp() - rebuildStarted) * 1000.0 / Stopwatch.Frequency);
                 _queueSize = _queue.Count;
             }
             var end = Math.Min(_queue.Count, _cursor + GroupsPerSlice);
             for (; _cursor < end; _cursor++) CheckGroup(_queue[_cursor]);
-            var ms = (System.Diagnostics.Stopwatch.GetTimestamp() - started) * 1000.0 / System.Diagnostics.Stopwatch.Frequency;
+            var ms = (Stopwatch.GetTimestamp() - started) * 1000.0 / Stopwatch.Frequency;
             _checkMsMax = Math.Max(_checkMsMax, ms);
             _checkMsSum += ms;
             _checks++;

@@ -8,10 +8,10 @@ using Sandbox.Game.Weapons;
 using Sandbox.Game.World;
 using Sandbox.ModAPI;
 using SentisGameplayImprovements.AllGridsActions;
+using SentisOptimisations;
 using SpaceEngineers.Game.Entities.Blocks;
 using Torch.Managers.PatchManager;
 using VRage.Game;
-using VRageMath;
 
 namespace SentisGameplayImprovements.Tweaks
 {
@@ -37,7 +37,7 @@ namespace SentisGameplayImprovements.Tweaks
         private static int _refreshQueued;
 
         public static void Patch(PatchContext ctx) =>
-            global::SentisOptimisations.PatchGuard.Run("ShipToolRadiusPatch", ctx, PatchImpl);
+            PatchGuard.Run("ShipToolRadiusPatch", ctx, PatchImpl);
 
         internal static void PatchImpl(PatchContext ctx)
         {

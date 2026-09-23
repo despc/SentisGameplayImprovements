@@ -5,6 +5,7 @@ using NLog;
 using Sandbox.Game.EntityComponents;
 using Sandbox.Game.Gui;
 using Sandbox.Game.Weapons;
+using SentisOptimisations;
 using SpaceEngineers.Game.Entities.Blocks;
 using SpaceEngineers.Game.Entities.Weapons;
 using Torch.Managers.PatchManager;
@@ -16,7 +17,7 @@ namespace SentisGameplayImprovements
     public static class FixTurretsPatch
     {
         public static readonly Logger Log = LogManager.GetCurrentClassLogger();
-        public static void Patch(PatchContext ctx) => global::SentisOptimisations.PatchGuard.Run("FixTurretsPatch", ctx, PatchImpl);
+        public static void Patch(PatchContext ctx) => PatchGuard.Run("FixTurretsPatch", ctx, PatchImpl);
 
         internal static void PatchImpl(PatchContext ctx)
         {

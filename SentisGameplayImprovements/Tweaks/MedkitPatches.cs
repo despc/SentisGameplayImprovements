@@ -1,12 +1,12 @@
 using System;
 using System.Collections.Generic;
 using System.Reflection;
-using NAPI;
 using NLog;
 using Sandbox.Common.ObjectBuilders.Definitions;
 using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Character;
 using Sandbox.Game.EntityComponents;
+using SentisOptimisations;
 using SpaceEngineers.Game.EntityComponents.GameLogic;
 using Torch.Managers.PatchManager;
 using VRage;
@@ -19,7 +19,7 @@ namespace SentisGameplayImprovements
     {
         public static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        public static void Patch(PatchContext ctx) => global::SentisOptimisations.PatchGuard.Run("MedkitPatches", ctx, PatchImpl);
+        public static void Patch(PatchContext ctx) => PatchGuard.Run("MedkitPatches", ctx, PatchImpl);
 
         internal static void PatchImpl(PatchContext ctx)
         {

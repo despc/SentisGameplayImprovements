@@ -6,6 +6,7 @@ using Sandbox.Game.Entities;
 using Sandbox.Game.Entities.Cube;
 using Sandbox.Game.Multiplayer;
 using Sandbox.Game.World;
+using SentisOptimisations;
 using Torch.Managers.PatchManager;
 using VRage.Game;
 
@@ -19,7 +20,7 @@ namespace SentisGameplayImprovements
         private static SortedSet<MyFloatingObject> _floatingOres;
         private static SortedSet<MyFloatingObject> _floatingItems;
 
-        public static void Patch(PatchContext ctx) => global::SentisOptimisations.PatchGuard.Run("LootPatch", ctx, PatchImpl);
+        public static void Patch(PatchContext ctx) => PatchGuard.Run("LootPatch", ctx, PatchImpl);
 
         internal static void PatchImpl(PatchContext ctx)
         {

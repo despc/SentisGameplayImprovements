@@ -6,6 +6,7 @@ using NAPI;
 using NLog;
 using Sandbox.Definitions;
 using Sandbox.Game.Entities.Cube;
+using SentisOptimisations;
 using Torch.Managers.PatchManager;
 using VRage;
 using VRage.Game;
@@ -18,7 +19,7 @@ namespace SentisGameplayImprovements
     {
         public static readonly Logger Log = LogManager.GetCurrentClassLogger();
 
-        public static void Patch(PatchContext ctx) => global::SentisOptimisations.PatchGuard.Run("RefineryPatchs", ctx, PatchImpl);
+        public static void Patch(PatchContext ctx) => PatchGuard.Run("RefineryPatchs", ctx, PatchImpl);
 
         internal static void PatchImpl(PatchContext ctx)
         {

@@ -3,9 +3,9 @@ using System.Collections.Concurrent;
 using System.Collections.Generic;
 using NLog;
 using Sandbox.Game.Entities;
+using SentisGameplayImprovements.Utils;
 using VRage.Game.Entity;
 using VRage.Game.ModAPI;
-using SentisGameplayImprovements.Utils;
 
 namespace SentisGameplayImprovements.AllGridsActions
 {

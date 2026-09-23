@@ -1,6 +1,7 @@
 using System.Reflection;
 using Havok;
 using Sandbox.Game.Entities;
+using SentisOptimisations;
 using SpaceEngineers.Game.Entities.Blocks;
 using Torch.Managers.PatchManager;
 using VRage.Game;
@@ -12,7 +13,7 @@ namespace SentisGameplayImprovements.Assholes;
 [PatchShim]
 internal static class LandingGearPatch
 {
-    public static void Patch(PatchContext ctx) => global::SentisOptimisations.PatchGuard.Run("LandingGearPatch", ctx, PatchImpl);
+    public static void Patch(PatchContext ctx) => PatchGuard.Run("LandingGearPatch", ctx, PatchImpl);
 
         internal static void PatchImpl(PatchContext ctx)
     {

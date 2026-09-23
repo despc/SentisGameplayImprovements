@@ -10,7 +10,6 @@ using HarmonyLib;
 using NAPI;
 using NLog;
 using ParallelTasks;
-using Sandbox.Common.ObjectBuilders;
 using Sandbox.Definitions;
 using Sandbox.Engine.Physics;
 using Sandbox.Game;
@@ -22,6 +21,7 @@ using Sandbox.Game.World;
 using Sandbox.ModAPI;
 using SentisGameplayImprovements.Explosions;
 using SentisGameplayImprovements.Loot;
+using SentisOptimisations;
 using Torch.Managers.PatchManager;
 using Torch.Managers.PatchManager.MSIL;
 using VRage.Game;
@@ -29,8 +29,8 @@ using VRage.Game.Components;
 using VRage.Game.Entity;
 using VRage.Game.ModAPI;
 using VRage.Game.ObjectBuilders.Components;
-using VRage.ModAPI;
 using VRage.Groups;
+using VRage.ModAPI;
 using VRage.Utils;
 using VRageMath;
 
@@ -68,7 +68,7 @@ namespace SentisGameplayImprovements
         // warheads a hit has already set off, so a second hit does not queue them again
         private static readonly HashSet<long> ShotWarheads = new HashSet<long>();
 
-        public static void Patch(PatchContext ctx) => global::SentisOptimisations.PatchGuard.Run("MissilePatch", ctx, PatchImpl);
+        public static void Patch(PatchContext ctx) => PatchGuard.Run("MissilePatch", ctx, PatchImpl);
 
         internal static void PatchImpl(PatchContext ctx)
         {

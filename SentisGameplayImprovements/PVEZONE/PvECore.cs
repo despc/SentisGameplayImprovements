@@ -1,3 +1,4 @@
+using System;
 using System.Globalization;
 using NLog;
 using Sandbox.Game.Entities;
@@ -57,7 +58,7 @@ namespace SentisGameplayImprovements.PveZone
                 }
                 _zone = new Zone(new BoundingSphereD(centre, config.PveZoneRadius));
             }
-            catch (System.Exception e)
+            catch (Exception e)
             {
                 Log.Error(e, "PvE zone settings");
             }

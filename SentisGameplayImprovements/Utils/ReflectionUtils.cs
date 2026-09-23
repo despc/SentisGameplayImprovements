@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Concurrent;
 using System.Linq;
 using System.Reflection;
 
@@ -9,20 +10,20 @@ namespace SentisGameplayImprovements
 
     // (Type, name) caches: EasyField linearly scanned every field and InvokeInstanceMethod
             // redid GetMethod on every call; both run on per-tick paths (ship tools, turrets).
-            private static readonly System.Collections.Concurrent.ConcurrentDictionary<Type,
-                System.Collections.Concurrent.ConcurrentDictionary<string, FieldInfo>> _easyFieldCache =
-                new System.Collections.Concurrent.ConcurrentDictionary<Type,
-                    System.Collections.Concurrent.ConcurrentDictionary<string, FieldInfo>>();
+            private static readonly ConcurrentDictionary<Type,
+                ConcurrentDictionary<string, FieldInfo>> _easyFieldCache =
+                new ConcurrentDictionary<Type,
+                    ConcurrentDictionary<string, FieldInfo>>();
 
-            private static readonly System.Collections.Concurrent.ConcurrentDictionary<Type,
-                System.Collections.Concurrent.ConcurrentDictionary<string, MethodInfo>> _methodCache =
-                new System.Collections.Concurrent.ConcurrentDictionary<Type,
-                    System.Collections.Concurrent.ConcurrentDictionary<string, MethodInfo>>();
+            private static readonly ConcurrentDictionary<Type,
+                ConcurrentDictionary<string, MethodInfo>> _methodCache =
+                new ConcurrentDictionary<Type,
+                    ConcurrentDictionary<string, MethodInfo>>();
 
             public static FieldInfo EasyField(this Type type, string name, bool needThrow = true)
             {
                 var byName = _easyFieldCache.GetOrAdd(type, _ =>
-                    new System.Collections.Concurrent.ConcurrentDictionary<string, FieldInfo>());
+                    new ConcurrentDictionary<string, FieldInfo>());
                 FieldInfo cached;
                 if (byName.TryGetValue(name, out cached))
                 {
@@ -47,7 +48,7 @@ namespace SentisGameplayImprovements
             internal static object InvokeInstanceMethod(Type type, object instance, string methodName, Object[] args)
             {
                 var byName = _methodCache.GetOrAdd(type, _ =>
-                    new System.Collections.Concurrent.ConcurrentDictionary<string, MethodInfo>());
+                    new ConcurrentDictionary<string, MethodInfo>());
                 MethodInfo cached;
                 if (!byName.TryGetValue(methodName, out cached))
                 {

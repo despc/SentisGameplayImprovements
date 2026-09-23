@@ -1,11 +1,8 @@
 using System;
-using System.Collections.Generic;
 using System.Threading;
 using System.Threading.Tasks;
 using NLog;
-using Sandbox.Game.Entities;
 using Sandbox.ModAPI;
-using SentisGameplayImprovements.AllGridsActions;
 using SentisGameplayImprovements.Assholes;
 
 namespace SentisGameplayImprovements.BackgroundActions
