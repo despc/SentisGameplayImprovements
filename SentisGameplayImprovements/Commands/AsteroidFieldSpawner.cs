@@ -12,7 +12,6 @@ using Sandbox.Game.World;
 using Sandbox.ModAPI;
 using VRage;
 using VRage.Game.Entity;
-using VRage.ModAPI;
 using VRage.Voxels;
 using VRageMath;
 
@@ -96,7 +95,10 @@ namespace SentisGameplayImprovements
         /// Whether the sphere touches no entity of the world (game thread). A planet counts where its
         /// ground is, not by its bounding box, which holds all of the space around it.
         /// </summary>
-        public static bool IsFree(BoundingSphereD sphere)
+        public static bool IsFree(BoundingSphereD sphere) => IsFree(sphere, null);
+
+        /// <summary>The same, not counting the entities of <paramref name="ignore"/> (ids).</summary>
+        public static bool IsFree(BoundingSphereD sphere, ICollection<long> ignore)
         {
             var found = new List<MyEntity>();
             MyGamePruningStructure.GetAllTopMostEntitiesInSphere(ref sphere, found);
@@ -104,6 +106,7 @@ namespace SentisGameplayImprovements
             {
                 if (entity is MyPlanet) continue;
                 if (entity.MarkedForClose) continue;
+                if (ignore != null && ignore.Contains(entity.EntityId)) continue;
                 if (entity.PositionComp.WorldAABB.Intersects(sphere)) return false;
             }
             var planet = MyGamePruningStructure.GetClosestPlanet(sphere.Center);
