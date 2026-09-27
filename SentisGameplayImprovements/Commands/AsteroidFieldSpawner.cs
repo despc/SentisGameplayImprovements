@@ -280,7 +280,7 @@ namespace SentisGameplayImprovements
                     }
                     placed++;
                     if (spawned != null) lock (spawned) spawned.Add(voxel);
-                    Log.Info("Field Spawner: " + (i + 1) + "/" + count + " " + voxel.StorageName + " at " + voxel.PositionComp.GetPosition());
+                    if (SentisGameplayImprovements.SentisGameplayImprovementsPlugin.Config?.DiagnosticLogs == true) Log.Info("Field Spawner: " + (i + 1) + "/" + count + " " + voxel.StorageName + " at " + voxel.PositionComp.GetPosition());
                 }
                 catch (Exception e)
                 {

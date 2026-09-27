@@ -18,7 +18,7 @@ namespace SentisGameplayImprovements
     {
       messageHandler = new SecureMsgHandler(NetworkMessageHandler);
       MyAPIGateway.Multiplayer.RegisterSecureMessageHandler(NETWORK_ID, messageHandler);
-      SentisGameplayImprovementsPlugin.Log.Warn("Register communication handlers");
+      if (SentisGameplayImprovements.SentisGameplayImprovementsPlugin.Config?.DiagnosticLogs == true) SentisGameplayImprovementsPlugin.Log.Warn("Register communication handlers");
     }
 
     public static void UnregisterHandlers() => MyAPIGateway.Multiplayer.UnregisterSecureMessageHandler(NETWORK_ID, messageHandler);
@@ -28,7 +28,7 @@ namespace SentisGameplayImprovements
       try
       {
         MessageType messageType = (MessageType) bytes[0];
-        SentisGameplayImprovementsPlugin.Log.Warn(string.Format("Received message: {0}: {1}", (object) bytes[0], (object) messageType));
+        if (SentisGameplayImprovements.SentisGameplayImprovementsPlugin.Config?.DiagnosticLogs == true) SentisGameplayImprovementsPlugin.Log.Warn(string.Format("Received message: {0}: {1}", (object) bytes[0], (object) messageType));
         byte[] data = new byte[bytes.Length - 1];
         Array.Copy((Array) bytes, 1, (Array) data, 0, data.Length);
         switch (messageType)
@@ -114,7 +114,7 @@ namespace SentisGameplayImprovements
       byte[] newData = new byte[data.Length + 1];
       newData[0] = (byte) type;
       data.CopyTo((Array) newData, 1);
-      SentisGameplayImprovementsPlugin.Log.Warn(string.Format("Sending message to others: {0}", (object) type));
+      if (SentisGameplayImprovements.SentisGameplayImprovementsPlugin.Config?.DiagnosticLogs == true) SentisGameplayImprovementsPlugin.Log.Warn(string.Format("Sending message to others: {0}", (object) type));
       MyAPIGateway.Utilities.InvokeOnGameThread((Action) (() => MyAPIGateway.Multiplayer.SendMessageToOthers((ushort) NETWORK_ID, newData)));
     }
 
@@ -123,7 +123,7 @@ namespace SentisGameplayImprovements
       byte[] newData = new byte[data.Length + 1];
       newData[0] = (byte) type;
       data.CopyTo((Array) newData, 1);
-      SentisGameplayImprovementsPlugin.Log.Warn(string.Format("Sending message to {0}: {1}", (object) recipient, (object) type));
+      if (SentisGameplayImprovements.SentisGameplayImprovementsPlugin.Config?.DiagnosticLogs == true) SentisGameplayImprovementsPlugin.Log.Warn(string.Format("Sending message to {0}: {1}", (object) recipient, (object) type));
       MyAPIGateway.Utilities.InvokeOnGameThread((Action) (() => MyAPIGateway.Multiplayer.SendMessageTo((ushort) NETWORK_ID, newData, recipient)));
     }
   }

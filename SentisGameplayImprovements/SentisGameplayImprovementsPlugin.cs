@@ -24,7 +24,7 @@ namespace SentisGameplayImprovements
         public static readonly Logger Log = LogManager.GetCurrentClassLogger();
         private static TorchSessionManager SessionManager;
         private static Persistent<MainConfig> _config;
-        public static MainConfig Config => _config.Data;
+        public static MainConfig Config => _config?.Data;
         internal static bool TryGetConfig(out MainConfig config)
         {
             config = _config?.Data;

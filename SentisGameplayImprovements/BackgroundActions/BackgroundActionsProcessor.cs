@@ -36,7 +36,7 @@ namespace SentisGameplayImprovements.BackgroundActions
         {
             try
             {
-                Log.Info("FastCheckLoop started");
+                if (SentisGameplayImprovements.SentisGameplayImprovementsPlugin.Config?.DiagnosticLogs == true) Log.Info("FastCheckLoop started");
                 while (!CancellationTokenSource.Token.IsCancellationRequested)
                 {
                     try
@@ -113,7 +113,7 @@ namespace SentisGameplayImprovements.BackgroundActions
         {
             try
             {
-                Log.Info("NotSoFastFastCheckLoop started");
+                if (SentisGameplayImprovements.SentisGameplayImprovementsPlugin.Config?.DiagnosticLogs == true) Log.Info("NotSoFastFastCheckLoop started");
                 while (!CancellationTokenSource.Token.IsCancellationRequested)
                 {
                     try
@@ -138,7 +138,7 @@ namespace SentisGameplayImprovements.BackgroundActions
         {
             try
             {
-                Log.Info("CheckLoop started");
+                if (SentisGameplayImprovements.SentisGameplayImprovementsPlugin.Config?.DiagnosticLogs == true) Log.Info("CheckLoop started");
                 while (!CancellationTokenSource.Token.IsCancellationRequested)
                 {
                     try

@@ -432,5 +432,11 @@ namespace SentisGameplayImprovements
         [DisplayTab(Name = "Path to Garage", GroupName = "Other", Tab = "Other", Order = 0, Description = "Path to Garage")]
         public String PathToGarage { get => _pathToGarage; set => SetValue(ref _pathToGarage, value); }
 
+
+        private bool _diagnosticLogs;
+
+        [DisplayTab(Name = "Diagnostic logs", GroupName = "Logs", Tab = "Logs", Order = 0,
+            Description = "Network messages between the plugin and clients, background loops, fall-through check counts, PvE zone and field spawner progress. Off by default; errors and what is done to players' grids are logged anyway")]
+        public bool DiagnosticLogs { get => _diagnosticLogs; set => SetValue(ref _diagnosticLogs, value); }
     }
 }

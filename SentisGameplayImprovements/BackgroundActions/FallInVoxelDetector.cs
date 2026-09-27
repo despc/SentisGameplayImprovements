@@ -304,7 +304,7 @@ namespace SentisGameplayImprovements.BackgroundActions
         {
             _lastCleanup = DateTime.UtcNow;
             if (_checks > 0)
-                SentisGameplayImprovementsPlugin.Log.Info("Fall-through checks: " + _checks + " slices in the last minute, " +
+                if (SentisGameplayImprovements.SentisGameplayImprovementsPlugin.Config?.DiagnosticLogs == true) SentisGameplayImprovementsPlugin.Log.Info("Fall-through checks: " + _checks + " slices in the last minute, " +
                                                          (_groupsChecked / _checks) + " grid groups per slice, " + (_checkMsSum / _checks).ToString("F2") +
                                                          " ms average, " + _checkMsMax.ToString("F2") + " ms max (collecting " + _queueSize + " groups: " + _rebuildMsMax.ToString("F2") + " ms max), " + RestoredCount + " restored since start");
             _checkMsMax = _checkMsSum = _rebuildMsMax = 0;

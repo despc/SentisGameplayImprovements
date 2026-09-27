@@ -44,7 +44,7 @@ namespace SentisGameplayImprovements.DelayedLogic
         {
             try
             {
-                Log.Info("DelayedLogic started");
+                if (SentisGameplayImprovements.SentisGameplayImprovementsPlugin.Config?.DiagnosticLogs == true) Log.Info("DelayedLogic started");
                 while (!CancellationTokenSource.Token.IsCancellationRequested)
                 {
                     Thread.Sleep(500);

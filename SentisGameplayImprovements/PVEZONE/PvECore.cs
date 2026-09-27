@@ -40,7 +40,7 @@ namespace SentisGameplayImprovements.PveZone
             _loaded = true;
             ReloadSettings();
             DamageHandler.Init();
-            Log.Info("PvE zone " + SentisGameplayImprovementsPlugin.Config.PveZonePos + " radius " +
+            if (SentisGameplayImprovements.SentisGameplayImprovementsPlugin.Config?.DiagnosticLogs == true) Log.Info("PvE zone " + SentisGameplayImprovementsPlugin.Config.PveZonePos + " radius " +
                      SentisGameplayImprovementsPlugin.Config.PveZoneRadius);
         }
 
