@@ -16,12 +16,18 @@ namespace SentisGameplayImprovements.BackgroundActions
     ///
     /// About twice a second, on the game thread and spread over frames (<see cref="GroupsPerSlice"/>
     /// groups per call, a call every 100 ms), every dynamic grid group near a planet is checked
-    /// against the planet's voxel storage (edits included, so tunnels and dug pits are air): the
-    /// centre of the group's biggest grid more than <see cref="DeepM"/> inside solid rock is a
-    /// fall-through - a dynamic grid can only get there by passing the surface. A moving group is
-    /// restored at once (a fall inside the rock tears wheels off within a couple of seconds); a
-    /// still one on the second check in a row - a vehicle that went through often hangs under the
-    /// ground on its suspension with the wheels caught on the surface, not moving at all.
+    /// against the planet's voxel storage (edits included, so tunnels and dug pits are air). A group
+    /// fell through when its biggest grid's blocks stand in solid rock (the content at each block's centre, between
+    /// the voxels around it, as the game puts the surface) - at least
+    /// <see cref="EmbeddedShare"/> of them (up to <see cref="BlockSamples"/> looked at): a dynamic grid
+    /// can only get into rock by passing the surface. Rock merely over the grid is not enough: a drill
+    /// head down its own shaft or a rover in a tunnel has rock over it and stands in the air it dug,
+    /// and was pulled out of the ground on every load. The blocks are read only when the rock
+    /// <see cref="DeepM"/> over the centre says the group may be under the ground at all. A group
+    /// sinking faster than <see cref="MovingMps"/> is restored at once (a fall inside the rock tears
+    /// wheels off within a couple of seconds); any other on the second check in a row - a vehicle that
+    /// went through often hangs under the ground on its suspension with the wheels caught on the
+    /// surface, not moving at all. (A spinning rotor or drill head moves fast without sinking.)
     ///
     /// While a group is out of the rock its pose is remembered every check. A fallen group is put
     /// back to that pose - the whole physical group (chassis, wheels, rotor parts) moved and turned
@@ -46,6 +52,10 @@ namespace SentisGameplayImprovements.BackgroundActions
         private const double MovingMps = 2.0;
         // A group this far over the generated surface is not near any rock; no voxel read needed.
         private const double SurelyAboveM = 30;
+        /// <summary>Share of the biggest grid's blocks in solid rock that makes a fall-through.</summary>
+        public const double EmbeddedShare = 0.5;
+        /// <summary>Blocks of the biggest grid looked at, spread over all of them.</summary>
+        public const int BlockSamples = 32;
 
         private sealed class SafePose
         {
@@ -59,6 +69,9 @@ namespace SentisGameplayImprovements.BackgroundActions
         // Groups found under the ground on the last check; restored when found there again.
         private readonly HashSet<long> _underLastCheck = new HashSet<long>();
         private readonly MyStorageData _probe = new MyStorageData(MyStorageDataTypeFlags.Content);
+        private readonly MyStorageData _probe8 = new MyStorageData(MyStorageDataTypeFlags.Content);
+        // what the last look under the ground found, for the log line of a restore
+        private double _lastEmbedded, _lastCentreContent;
         private DateTime _lastCleanup = DateTime.UtcNow;
         private readonly List<MyCubeGrid> _queue = new List<MyCubeGrid>();
         private int _cursor;
@@ -141,7 +154,8 @@ namespace SentisGameplayImprovements.BackgroundActions
             // Falling: at once, before the fall tears the wheels off (at ~60 m/s they go in about a
             // second and a half). Still: on the second check in a row.
             var first = _underLastCheck.Add(root.EntityId);
-            if (_givenUp.Contains(root.EntityId) || first && root.Physics.LinearVelocity.Length() < MovingMps) return;
+            var sinking = -Vector3D.Dot(root.Physics.LinearVelocity, Vector3D.Normalize(root.PositionComp.GetPosition() - planet.PositionComp.GetPosition()));
+            if (_givenUp.Contains(root.EntityId) || first && sinking < MovingMps) return;
             if (TooManyRestores(root))
             {
                 _givenUp.Add(root.EntityId);
@@ -150,6 +164,9 @@ namespace SentisGameplayImprovements.BackgroundActions
                 return;
             }
             _underLastCheck.Remove(root.EntityId);
+            // held by a static grid (a drill rig on a base's piston): it cannot have fallen, and moving it would move
+            // the base with it - an old server lifted a bot's whole base on every load and broke its connector
+            if (HeldByStatic(GroupOf(root))) return;
             Restore(root, planet, "fell through the ground");
         }
 
@@ -161,6 +178,7 @@ namespace SentisGameplayImprovements.BackgroundActions
         {
             var group = GroupOf(grid);
             if (group.Any(g => g.IsStatic)) return "Grid is static";
+            if (HeldByStatic(group)) return "Grid is held by a static grid";
             var root = Root(group);
             var planet = MyGamePruningStructure.GetClosestPlanet(root.PositionComp.GetPosition());
             if (planet?.Storage == null) return "No planet near the grid";
@@ -176,7 +194,28 @@ namespace SentisGameplayImprovements.BackgroundActions
             var generated = planet.GetClosestSurfacePointGlobal(ref centre);
             if ((centre - planetCentre).Length() - (generated - planetCentre).Length() > SurelyAboveM) return false;
             var up = Vector3D.Normalize(centre - planetCentre);
-            return IsRock(planet, centre + up * DeepM);
+            if (!IsRock(planet, centre + up * DeepM)) return false;
+            _lastEmbedded = EmbeddedFraction(root, planet);
+            _lastCentreContent = ContentAt(planet, centre);
+            return _lastEmbedded >= EmbeddedShare;
+        }
+
+        /// <summary>Of up to <see cref="BlockSamples"/> blocks of the grid, spread over all of them, the share whose centre is in solid rock.</summary>
+        private double EmbeddedFraction(MyCubeGrid grid, MyPlanet planet)
+        {
+            var blocks = grid.CubeBlocks;
+            if (blocks.Count == 0) return 0;
+            var stride = Math.Max(1, blocks.Count / BlockSamples);
+            int looked = 0, inRock = 0, i = 0;
+            foreach (var block in blocks)
+            {
+                if (i++ % stride != 0) continue;
+                var centre = grid.GridIntegerToWorld((block.Min + block.Max) * 0.5);
+                looked++;
+                if (ContentAt(planet, centre) >= 128) inRock++;
+                if (looked >= BlockSamples) break;
+            }
+            return looked == 0 ? 0 : (double)inRock / looked;
         }
 
         private void Restore(MyCubeGrid root, MyPlanet planet, string reason)
@@ -218,7 +257,8 @@ namespace SentisGameplayImprovements.BackgroundActions
             SentisGameplayImprovementsPlugin.Log.Warn("Fall-through: restored grid " + root.DisplayName + " (" + root.EntityId + ", " +
                                                      group.Count + " grids, " + reason + "), centre " + depth.ToString("F1") +
                                                      " m under the ground, lifted " + lift.ToString("F1") + " m over the pose, moved " + Vector3D.Distance(from, root.PositionComp.GetPosition()).ToString("F0") +
-                                                     " m, pose " + (pose == null ? "none (lifted in place)" : (DateTime.UtcNow - pose.Time).TotalSeconds.ToString("F0") + "s old"));
+                                                     " m, pose " + (pose == null ? "none (lifted in place)" : (DateTime.UtcNow - pose.Time).TotalSeconds.ToString("F0") + "s old") +
+                                                     "; blocks in rock " + (_lastEmbedded * 100).ToString("F0") + "%, rock content at the centre " + _lastCentreContent.ToString("F0"));
         }
 
         /// <summary>
@@ -228,6 +268,27 @@ namespace SentisGameplayImprovements.BackgroundActions
         /// joined to it by constraints from outside - and the bodies put back in one batch, so the
         /// wheel and rotor constraints never see one side of them alone. Velocities end at zero.
         /// </summary>
+        /// <summary>Whether a body of the group is joined by a constraint to a static grid (or a block of one).</summary>
+        private static bool HeldByStatic(List<MyCubeGrid> group)
+        {
+            foreach (var grid in group)
+            {
+                var entities = new HashSet<IMyEntity> { grid };
+                grid.Hierarchy.GetChildrenRecursive(entities);
+                foreach (var entity in entities)
+                {
+                    if (!(entity.Physics is MyPhysicsBody body)) continue;
+                    foreach (var constraint in body.Constraints)
+                    {
+                        var a = constraint.RigidBodyA.GetEntity(0u);
+                        var other = a == entity ? constraint.RigidBodyB.GetEntity(0u) : a;
+                        if (other?.GetTopMostParent() is MyCubeGrid otherGrid && otherGrid.IsStatic) return true;
+                    }
+                }
+            }
+            return false;
+        }
+
         private static void MoveGroup(MyCubeGrid root, MatrixD move)
         {
             var nodes = MyCubeGridGroups.Static.Physical.GetGroup(root)?.Nodes.Select(n => n.NodeData).ToList()
@@ -254,7 +315,8 @@ namespace SentisGameplayImprovements.BackgroundActions
                 foreach (var constraint in body.Constraints)
                 {
                     var other = constraint.RigidBodyA.GetEntity(0u) == entity ? constraint.RigidBodyB.GetEntity(0u) : constraint.RigidBodyA.GetEntity(0u);
-                    if (other != null && !all.Contains(other)) linked.Add(other);
+                    // a static grid is never moved along (nor its blocks)
+                    if (other != null && !all.Contains(other) && !(other.GetTopMostParent() is MyCubeGrid g && g.IsStatic)) linked.Add(other);
                 }
             }
 
@@ -334,6 +396,32 @@ namespace SentisGameplayImprovements.BackgroundActions
             _probe.Resize(Vector3I.One);
             planet.Storage.ReadRange(_probe, MyStorageDataTypeFlags.Content, 0, voxel, voxel);
             return _probe.Content(0) >= 128;
+        }
+
+        /// <summary>
+        /// The rock content at the point itself, between the eight voxels around it - the way the game puts the
+        /// surface, at 128. A voxel is a metre: read whole, a block lying on the ground half fills the voxels of the
+        /// ground it lies on and read as in the rock.
+        /// </summary>
+        private double ContentAt(MyPlanet planet, Vector3D point)
+        {
+            // voxel values stand at the corners of the voxel grid (a block lying on the ground reads 60-90 so, and
+            // 140-170 - in the rock - taken at voxel centres)
+            var p = point - planet.PositionLeftBottomCorner;
+            var cell = Vector3I.Floor(p);
+            var f = p - new Vector3D(cell.X, cell.Y, cell.Z);
+            var min = cell + planet.StorageMin;
+            var size = planet.Storage.Size;
+            if (min.X < 0 || min.Y < 0 || min.Z < 0 || min.X + 1 >= size.X || min.Y + 1 >= size.Y || min.Z + 1 >= size.Z) return 0;
+            _probe8.Resize(new Vector3I(2));
+            planet.Storage.ReadRange(_probe8, MyStorageDataTypeFlags.Content, 0, min, min + 1);
+            double C(int x, int y, int z) { var v = new Vector3I(x, y, z); return _probe8.Content(ref v); }
+            double Lerp(double a, double b, double t) => a + (b - a) * t;
+            var c00 = Lerp(C(0, 0, 0), C(1, 0, 0), f.X);
+            var c10 = Lerp(C(0, 1, 0), C(1, 1, 0), f.X);
+            var c01 = Lerp(C(0, 0, 1), C(1, 0, 1), f.X);
+            var c11 = Lerp(C(0, 1, 1), C(1, 1, 1), f.X);
+            return Lerp(Lerp(c00, c10, f.Y), Lerp(c01, c11, f.Y), f.Z);
         }
 
         /// <summary>The first rock walking down the local vertical from high over the generated surface.</summary>
