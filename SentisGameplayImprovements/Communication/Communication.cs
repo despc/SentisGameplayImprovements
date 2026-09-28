@@ -21,7 +21,7 @@ namespace SentisGameplayImprovements
       if (SentisGameplayImprovements.SentisGameplayImprovementsPlugin.Config?.DiagnosticLogs == true) SentisGameplayImprovementsPlugin.Log.Warn("Register communication handlers");
     }
 
-    public static void UnregisterHandlers() => MyAPIGateway.Multiplayer.UnregisterSecureMessageHandler(NETWORK_ID, messageHandler);
+    public static void UnregisterHandlers() => MyAPIGateway.Multiplayer?.UnregisterSecureMessageHandler(NETWORK_ID, messageHandler);
 
     private static void NetworkMessageHandler(ushort id, byte[] bytes, ulong plyID, bool sentFromServer)
     {

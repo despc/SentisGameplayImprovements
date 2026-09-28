@@ -29,7 +29,7 @@ namespace SentisGameplayImprovements.BackgroundActions
 
         public void OnUnloading()
         {
-            CancellationTokenSource.Cancel();
+            CancellationTokenSource?.Cancel();   // (not made when the world never loaded)
         }
 
         public void FastCheckLoop()
