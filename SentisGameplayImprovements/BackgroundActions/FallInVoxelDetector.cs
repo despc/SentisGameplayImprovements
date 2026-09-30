@@ -293,7 +293,7 @@ namespace SentisGameplayImprovements.BackgroundActions
         {
             var nodes = MyCubeGridGroups.Static.Physical.GetGroup(root)?.Nodes.Select(n => n.NodeData).ToList()
                         ?? new List<MyCubeGrid> { root };
-            var entities = new Dictionary<MyCubeGrid, HashSet<IMyEntity>>();
+            var entities = new Dictionary<MyCubeGrid, List<IMyEntity>>();
             var linked = new HashSet<IMyEntity>();
             foreach (var grid in nodes)
             {
@@ -306,9 +306,11 @@ namespace SentisGameplayImprovements.BackgroundActions
             {
                 var set = new HashSet<IMyEntity> { grid };
                 grid.Hierarchy.GetChildrenRecursive(set);
-                entities[grid] = set;
+                entities[grid] = set.ToList();
             }
-            var all = new HashSet<IMyEntity>(entities.Values.SelectMany(x => x));
+            // Each grid before its blocks and subparts, as MyCubeGrid.Teleport has them.
+            var ordered = nodes.SelectMany(g => entities[g]).ToList();
+            var all = new HashSet<IMyEntity>(ordered);
             foreach (var entity in all)
             {
                 if (!(entity.Physics is MyPhysicsBody body)) continue;
@@ -320,8 +322,14 @@ namespace SentisGameplayImprovements.BackgroundActions
                 }
             }
 
+            // Off in reverse, as MyCubeGrid.Teleport does: a body with no cluster of its own (a door's leaf, a
+            // connector's ejector) turned off after its grid finds the grid without a Havok world, and
+            // MyPhysicsBody.Deactivate then drops its rigid body without taking it out of the world. The body stays in
+            // the old world, tied to the grid by its constraint; once the grid is in another world Havok's island merge
+            // reads past its arrays: the stand's access violations in a physics job, every start (30.09.2026, dump:
+            // the leaves of a door on "Wrecked Hauler Bow" in the old world, their MyPhysicsBody without a rigid body).
             var wasDisabled = new HashSet<IMyEntity>();
-            foreach (var entity in all.Concat(linked))
+            foreach (var entity in ((IEnumerable<IMyEntity>)linked).Reverse().Concat(Enumerable.Reverse(ordered)))
             {
                 if (!(entity.Physics is MyPhysicsBody body) || body.IsWelded) continue;
                 if (body.Enabled) body.Enabled = false;
@@ -338,7 +346,7 @@ namespace SentisGameplayImprovements.BackgroundActions
                 entity.PositionComp.SetWorldMatrix(ref m, null, false, true, true, true);
             }
             var reinsert = new List<MyPhysicsBody>();
-            foreach (var entity in all.Concat(linked))
+            foreach (var entity in ordered.Concat(linked))
             {
                 if (!(entity.Physics is MyPhysicsBody body) || body.IsWelded || wasDisabled.Contains(entity)) continue;
                 body.LinearVelocity = Vector3.Zero;
