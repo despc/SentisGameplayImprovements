@@ -106,8 +106,15 @@ namespace SentisGameplayImprovements
             ctx.GetPattern(typeof(MyCockpit).GetMethod(nameof(MyCockpit.OnUnregisteredFromGridSystems), BindingFlags.Instance | BindingFlags.Public))
                 .Transpilers.Add(Method(nameof(CockpitPilotTranspiler)));
 
-            // borrowed from DePatch
-            ctx.Prefix(typeof(MyExplosionInfo), "get_AffectVoxels", typeof(MissilePatch), nameof(AffectVoxelsPatch));
+            // Explosions cut voxels only when the server allows it. Not a patch of MyExplosionInfo.AffectVoxels (it was, from
+            // DePatch): Torch re-emits a structure's method with the structure taken for an object, and the collector, stopping
+            // the thread in it, took the pointer into the explosion for an object - it crashed and damaged the heap
+            // (SentisTests struct_this_gc, 29.09.2026). The one place that reads it, the explosion's voxel cut, instead.
+            var explosion = typeof(MyExplosionInfo).Assembly.GetType("Sandbox.Game.MyExplosion", true);
+            var voxelCut = explosion.GetMethod("ApplyExplosionOnVoxel", BindingFlags.Instance | BindingFlags.NonPublic, null,
+                               new[] { typeof(MyExplosionInfo).MakeByRefType() }, null)
+                           ?? throw new MissingMethodException("MyExplosion", "ApplyExplosionOnVoxel");
+            ctx.GetPattern(voxelCut).Prefixes.Add(Method(nameof(AffectVoxelsPatch)));
         }
 
         private static MethodInfo Method(string name) =>
