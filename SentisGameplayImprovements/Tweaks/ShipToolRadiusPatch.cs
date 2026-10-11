@@ -4,6 +4,7 @@ using System.Reflection;
 using System.Threading;
 using Sandbox.Definitions;
 using Sandbox.Game.Entities;
+using Sandbox.Game.Entities.Cube;
 using Sandbox.Game.Weapons;
 using Sandbox.Game.World;
 using Sandbox.ModAPI;
@@ -12,21 +13,27 @@ using SentisOptimisations;
 using SpaceEngineers.Game.Entities.Blocks;
 using Torch.Managers.PatchManager;
 using VRage.Game;
+using VRage.Game.Models;
+using VRageMath;
 
 namespace SentisGameplayImprovements.Tweaks
 {
     /// <summary>
-    /// Applies live ship-tool radius multipliers to existing blocks and initializes new blocks
-    /// with the current values. All entity and mining-system mutations run on the game thread.
+    /// Applies live ship-tool radius multipliers and the welder's and grinder's forward offsets to existing blocks and
+    /// initializes new blocks with the current values. All entity and mining-system mutations run on the game thread.
     /// </summary>
     [PatchShim]
     public static class ShipToolRadiusPatch
     {
         private const float MinMultiplier = 0.1f;
         private const float MaxMultiplier = 10f;
+        private const float MaxOffset = 10f;
 
         private static readonly FieldInfo DetectorSphereField = typeof(MyShipToolBase).GetField(
             "m_detectorSphere", BindingFlags.Instance | BindingFlags.NonPublic);
+        // The welder's blocks of its own grid in its sphere, kept until the grid changes: a new sphere starts it anew.
+        private static readonly FieldInfo OwnGridCheckedBlocksField = typeof(MyShipToolBase).GetField(
+            "m_ownGridCheckedBlocks", BindingFlags.Instance | BindingFlags.NonPublic);
         private static readonly FieldInfo ShipDrillIdField = typeof(MyShipDrill).GetField(
             "ShipDrillId", BindingFlags.Instance | BindingFlags.NonPublic);
         private static readonly FieldInfo DrillCutOutRadiusField = typeof(MyDrillCutOut).GetField(
@@ -58,6 +65,13 @@ namespace SentisGameplayImprovements.Tweaks
             if (float.IsNaN(value) || float.IsInfinity(value))
                 return 1f;
             return Math.Max(MinMultiplier, Math.Min(MaxMultiplier, value));
+        }
+
+        public static float NormalizeOffset(float value)
+        {
+            if (float.IsNaN(value) || float.IsInfinity(value))
+                return 0f;
+            return Math.Max(-MaxOffset, Math.Min(MaxOffset, value));
         }
 
         /// <summary>
@@ -148,9 +162,9 @@ namespace SentisGameplayImprovements.Tweaks
             try
             {
                 if (block is MyShipWelder welder)
-                    ApplyShipTool(welder, config.WelderRadiusMultiplier);
+                    ApplyShipTool(welder, config.WelderRadiusMultiplier, config.WelderForwardOffset);
                 else if (block is MyShipGrinder grinder)
-                    ApplyShipTool(grinder, config.GrinderRadiusMultiplier);
+                    ApplyShipTool(grinder, config.GrinderRadiusMultiplier, config.GrinderForwardOffset);
                 else if (block is MyShipDrill drill)
                     ApplyDrill(drill, config.DrillRadiusMultiplier);
             }
@@ -161,12 +175,41 @@ namespace SentisGameplayImprovements.Tweaks
             }
         }
 
-        private static void ApplyShipTool(MyShipToolBase tool, float multiplier)
+        private static void ApplyShipTool(MyShipToolBase tool, float multiplier, float forwardOffset)
         {
             var definition = (MyShipToolDefinition)tool.BlockDefinition;
             var sphere = tool.DetectorSphere;
             sphere.Radius = definition.SensorRadius * multiplier;
+            if (GameSphereCentre(tool, definition, out var centre, out var forward))
+                sphere.Center = centre + forward * forwardOffset;
+            if (sphere.Center == tool.DetectorSphere.Center && sphere.Radius == tool.DetectorSphere.Radius)
+                return;
             DetectorSphereField.SetValue(tool, sphere);
+            (OwnGridCheckedBlocksField?.GetValue(tool) as HashSet<MySlimBlock>)?.Clear();
+        }
+
+        /// <summary>
+        /// Where the game puts the tool's sphere (grid space) and the tool's forward: the model's "detector_shiptool"
+        /// dummy moved <c>SensorOffset</c> along its forward, as <c>MyShipToolBase.LoadDummies</c> does. The game sets it
+        /// anew on every adding to the scene, so the offset is counted from it, not from what is there now.
+        /// </summary>
+        private static bool GameSphereCentre(MyShipToolBase tool, MyShipToolDefinition definition, out Vector3 centre, out Vector3 forward)
+        {
+            centre = default;
+            forward = default;
+            var model = MyModels.GetModelOnlyDummies(definition.Model);
+            if (model?.Dummies == null)
+                return false;
+            foreach (var dummy in model.Dummies)
+            {
+                if (!dummy.Key.ToLower().Contains("detector_shiptool"))
+                    continue;
+                var matrix = dummy.Value.Matrix * tool.PositionComp.LocalMatrixRef;
+                centre = matrix.Translation + matrix.Forward * definition.SensorOffset;
+                forward = Vector3.Normalize(matrix.Forward);
+                return true;
+            }
+            return false;
         }
 
         private static void ApplyDrill(MyShipDrill drill, float multiplier)

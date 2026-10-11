@@ -48,6 +48,8 @@ namespace SentisGameplayImprovements
         private float _welderRadiusMultiplier = 1f;
         private float _grinderRadiusMultiplier = 1f;
         private float _drillRadiusMultiplier = 1f;
+        private float _welderForwardOffset;
+        private float _grinderForwardOffset;
 
         //explosions
         private bool _explosionTweaks = false;
@@ -259,6 +261,28 @@ namespace SentisGameplayImprovements
             set
             {
                 SetValue(ref _grinderRadiusMultiplier, ShipToolRadiusPatch.NormalizeMultiplier(value));
+                ShipToolRadiusPatch.ApplyAllAsync();
+            }
+        }
+
+        [DisplayTab(Name = "Welder work sphere forward offset, m", GroupName = "Ship tools", Tab = "Ship tools", Order = 3, LiveUpdate = true, Description = "Moves the ship welder's work sphere forward along the welder by this many metres (negative - back), so it does not weld behind itself. Applied while the server is running; -10..10.")]
+        public float WelderForwardOffset
+        {
+            get => _welderForwardOffset;
+            set
+            {
+                SetValue(ref _welderForwardOffset, ShipToolRadiusPatch.NormalizeOffset(value));
+                ShipToolRadiusPatch.ApplyAllAsync();
+            }
+        }
+
+        [DisplayTab(Name = "Grinder work sphere forward offset, m", GroupName = "Ship tools", Tab = "Ship tools", Order = 4, LiveUpdate = true, Description = "Moves the ship grinder's work sphere forward along the grinder by this many metres (negative - back). Applied while the server is running; -10..10.")]
+        public float GrinderForwardOffset
+        {
+            get => _grinderForwardOffset;
+            set
+            {
+                SetValue(ref _grinderForwardOffset, ShipToolRadiusPatch.NormalizeOffset(value));
                 ShipToolRadiusPatch.ApplyAllAsync();
             }
         }
