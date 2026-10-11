@@ -35,7 +35,8 @@ namespace SentisGameplayImprovements.BackgroundActions
             var ownerId = PlayerUtils.GetOwner(grid);
             if (ownerId == 0)
             {
-                ownerId = grid.GetBlocks().First().BuiltBy;
+                // a grid ground down to nothing is swept before it closes
+                ownerId = grid.GetBlocks().FirstOrDefault()?.BuiltBy ?? 0;
             }
 
             var ownerName = "Nobody";
