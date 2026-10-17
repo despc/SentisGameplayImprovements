@@ -22,6 +22,11 @@
 
 ## Установка
 
+- Готовый архив плагина — на странице [Releases](https://github.com/despc/SentisGameplayImprovements/releases): положите
+  его в папку `Plugins` как есть и перезапустите Torch. Внутри плагин, `0Harmony.dll`, библиотеки `System.Text.Json`,
+  `manifest.xml`, лицензия.
+- Релиз собирает GitHub Actions по тегу вида `v1.2.3` (или `1.2.3`; `.github/workflows/release.yml`); ту же сборку
+  у себя делает `toolselease.ps1 -Version v1.2.3`.
 - Настройки хранятся в `Instance\SentisGameplayImprovements.cfg` и правятся в GUI Torch.
 - Параметры `Ship tools` применяются на лету. `Raycast Limit` требует рестарта.
 - `Diagnostic logs` на вкладке Logs (по умолчанию выключен): сетевые сообщения плагина, запуск фоновых циклов, счётчики
