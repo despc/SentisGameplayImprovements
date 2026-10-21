@@ -28,6 +28,7 @@ namespace SentisGameplayImprovements
         //NPC
         private String _pathToGrids = "C:\\SE\\Arrakis\\NPC";
         private String _guardiansNpcNames = "MKB_9000.sbc,MKB_9000.sbc";
+        private bool _claimNpcGridTakesOwnership = false;
         private int _guardDistanceSpawn = 300;
         
         //other
@@ -161,6 +162,14 @@ namespace SentisGameplayImprovements
         
         [DisplayTab(Name = "Guardians spawn distance", GroupName = "NPC", Tab = "NPC", Order = 0, Description = "Guardians spawn distance")]
         public int GuardDistanceSpawn { get => _guardDistanceSpawn; set => SetValue(ref _guardDistanceSpawn, value); }
+        
+        [DisplayTab(Name = "Claim NPC grid takes ownership", GroupName = "NPC", Tab = "NPC", Order = 1,
+            Description = "The terminal's \"Claim NPC Grid\" also makes the player the owner of the grid's blocks owned by an NPC (the game's claim gives only the PCU)")]
+        public bool ClaimNpcGridTakesOwnership
+        {
+            get => _claimNpcGridTakesOwnership;
+            set => SetValue(ref _claimNpcGridTakesOwnership, value);
+        }
         
         [DisplayTab(Name = "Contract escort multiplier", GroupName = "Contracts", Tab = "Contracts", Order = 0, Description = "Contract escort reward multiplier")]
         public double ContractEscortMultiplier
