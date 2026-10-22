@@ -50,7 +50,8 @@ internal static class LandingGearPatch
                 return false;
             }
             
-            if (SentisGameplayImprovementsPlugin.Config.DisableLockLandingGearOnEnemyShips && ((MyCubeGrid)topMostParent).IsNpcGrid())
+            // a player's ship of an enemy (an NPC's is the setting above; it was "IsNpcGrid" here too, so no enemy player's ship was refused)
+            if (SentisGameplayImprovementsPlugin.Config.DisableLockLandingGearOnEnemyShips && !((MyCubeGrid)topMostParent).IsNpcGrid())
             {
                 var owner = PlayerUtils.GetOwner(gridWithGear);
                 if (owner == 0)
