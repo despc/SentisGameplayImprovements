@@ -49,9 +49,8 @@ namespace SentisGameplayImprovements
     
     public static void OnListRequestForGui(byte[] data, ulong plyId)
     {
-      GuiGridsRequest listRequest = MyAPIGateway.Utilities.SerializeFromBinary<GuiGridsRequest>(data);
-      var listRequestSteamId = listRequest.SteamId;
-      SendGridListToGuiClient(listRequestSteamId);
+      // the list goes to the sender
+      SendGridListToGuiClient(plyId);
     }
 
     private static void SendGridListToGuiClient(ulong SteamId)
