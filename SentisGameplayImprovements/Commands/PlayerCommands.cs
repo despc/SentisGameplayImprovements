@@ -241,7 +241,7 @@ namespace SentisGameplayImprovements
             if (grid.IsPreview)
                 return;
                     
-            if (!CheckPermissions(grid, player.IdentityId))
+            if (!CheckPermissions(grid, player))
             {
                 Context?.Respond("You have no permission to convert " + grid.DisplayName);
                 return;
@@ -327,7 +327,7 @@ namespace SentisGameplayImprovements
             if (grid.IsPreview)
                 return; // continue;
 
-            if (!CheckPermissions(grid, player.IdentityId))
+            if (!CheckPermissions(grid, player))
             {
                 Context?.Respond("You have no permission to convert " + grid.DisplayName);
                 return; // return;
@@ -362,8 +362,14 @@ namespace SentisGameplayImprovements
         /// <summary>Makes the grid static on the server and the clients, in place.</summary>
         public static bool ConvertToStatic(MyCubeGrid grid) => PcuLimiter.ConvertToStatic(grid);
 
-        private static bool CheckPermissions(MyCubeGrid grid, long playerIdentity)
+        /// <summary>
+        /// Whether the player may convert the grid: an admin (moderator, owner) any grid, a player one nobody owns, their
+        /// own or one shared with their faction. Admins were refused others' grids, as players are.
+        /// </summary>
+        private static bool CheckPermissions(MyCubeGrid grid, IMyPlayer player)
         {
+            if (PlayerUtils.IsAdmin(player)) return true;
+            var playerIdentity = player.IdentityId;
             if (playerIdentity == 0L || grid.BigOwners.Count == 0)
             {
                 return true;
