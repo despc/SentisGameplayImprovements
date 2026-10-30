@@ -34,8 +34,8 @@ namespace SentisGameplayImprovements
     /// into range (not the grid it stands on or sits in, nor those joined to it: they would vanish under it for the
     /// seconds a stream takes);</item>
     /// <item><see cref="ResendCharacter"/>: the character itself taken from the client and given anew - the client makes
-    /// it again from the server's state; it takes the control back by itself (its cache of who controls what), and the
-    /// server gives it once more when the client has the character.</item>
+    /// it again from the server's state and takes the control back by itself (its cache of who controls what); the
+    /// server's control is not touched.</item>
     /// </list>
     /// Game thread.
     /// </summary>
@@ -46,6 +46,11 @@ namespace SentisGameplayImprovements
         /// <summary>Grids round the character resent, metres; and how many at most.</summary>
         public const double GridsRadius = 300;
         public const int MaxGrids = 40;
+        /// <summary>The grids left as they were under the character by the last resend of the grids round it (read by SentisTests).</summary>
+        public static int LastKept;
+
+        /// <summary>A grid whose box, this many metres wider, holds the character is left as it is.</summary>
+        public const double KeepNear = 5;
         /// <summary>How long the control is waited to be given back after a resend of the character, frames.</summary>
         private const int ControlWaitFrames = 60 * 30;
 
@@ -108,6 +113,14 @@ namespace SentisGameplayImprovements
             var at = character.PositionComp.GetPosition();
             // what it stands on or sits in, and all joined to it, stays
             var keep = new HashSet<MyCubeGrid>();
+            // (and any grid the character is in or by, within its box and KeepNear m: its support is not known mid-step,
+            // on the jetpack or on a ladder - the stand's !sync of 30.10.2026 resent the grid its player stood on, gone
+            // from under it on the client for the stream's seconds, the character pulled back and forth)
+            var near = new BoundingSphereD(character.PositionComp.GetPosition(), KeepNear);
+            foreach (var grid in MyEntities.GetTopMostEntitiesInSphere(ref near).OfType<MyCubeGrid>())
+                if (grid.PositionComp.WorldAABB.Inflate(KeepNear).Contains(character.PositionComp.GetPosition()) != ContainmentType.Disjoint)
+                    foreach (var joined in MyCubeGridGroups.Static.Physical.GetGroupNodes(grid))
+                        keep.Add(joined);
             foreach (var under in Underfoot(character))
                 foreach (var joined in MyCubeGridGroups.Static.Physical.GetGroupNodes(under))
                     keep.Add(joined);
@@ -125,6 +138,7 @@ namespace SentisGameplayImprovements
                 sent++;
             }
             Log.Info($"Sync: {sent} grids within {GridsRadius:0} m resent to {Name(player)} (kept {keep.Count} it stands on or sits in)");
+            LastKept = keep.Count;
             return (sent, keep.Count);
         }
 
@@ -141,8 +155,14 @@ namespace SentisGameplayImprovements
             if (replicable == null) return "персонаж не реплицируется";
             Resend(server, replicable, endpoint, client);
             Log.Info($"Sync: the character of {Name(player)} resent to its client");
+            // The control is left as it is: the server's stays with the character all along, and the client, making the
+            // character anew, takes it back by itself (MyCharacter.OnAddedToScene -> MyPlayerCollection.UpdateControl, from
+            // its cache of who controls what). Given "once more" by SetControlledEntity, it was lost: that takes the
+            // character out of the server's table of control and TakeControl, the player controlling it already, puts
+            // nothing back - the client's moves were dropped (GetControllingPlayer null), the character held in place
+            // (the stand, 30.10.2026). Only looked at once the client has the character.
             var frames = 0;
-            void GiveControl()
+            void Look()
             {
                 try
                 {
@@ -151,21 +171,20 @@ namespace SentisGameplayImprovements
                     if (current == null) return;
                     if (!(bool)_isReady.Invoke(current, new object[] { replicable }))
                     {
-                        if (++frames < ControlWaitFrames) MySandboxGame.Static.Invoke(GiveControl, "SgiSyncControl");
+                        if (++frames < ControlWaitFrames) MySandboxGame.Static.Invoke(Look, "SgiSyncLook");
                         else Log.Warn($"Sync: the client of {Name(player)} did not take its character again in {ControlWaitFrames / 60} s");
                         return;
                     }
-                    // the control as the server has it, once more: the client has its character anew
-                    var controlled = player.Controller.ControlledEntity as VRage.Game.Entity.MyEntity ?? character;
-                    MySession.Static.Players.SetControlledEntity(player.Id, controlled);
-                    Log.Info($"Sync: the control of {controlled.DisplayName} given back to {Name(player)} after {frames} frames");
+                    var controlling = MySession.Static.Players.GetControllingPlayer(character);
+                    if (controlling?.Id == player.Id) Log.Info($"Sync: the client of {Name(player)} has its character again after {frames} frames, controlled by it");
+                    else Log.Warn($"Sync: the client of {Name(player)} has its character again after {frames} frames, but the server has it controlled by {controlling?.DisplayName ?? "nobody"}");
                 }
                 catch (Exception e)
                 {
-                    Log.Error(e, "Sync: control back");
+                    Log.Error(e, "Sync: after the resend");
                 }
             }
-            MySandboxGame.Static.Invoke(GiveControl, "SgiSyncControl");
+            MySandboxGame.Static.Invoke(Look, "SgiSyncLook");
             return "персонаж отправлен клиенту заново";
         }
 

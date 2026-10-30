@@ -73,7 +73,7 @@ namespace SentisGameplayImprovements
                     case "all":
                         // the grids first: what it stands on is found before the support is told anew
                         var grids = CharacterSync.ResendGrids(player);
-                        Context.Respond($"{player.DisplayName}: {CharacterSync.Reset(player)}; гридов вокруг отправлено заново: {grids.Sent} (под ногами не трогали: {grids.Kept}). Не помогло - !sync resend");
+                        Context.Respond($"{player.DisplayName}: {CharacterSync.Reset(player)}; гридов вокруг отправлено заново: {grids.Sent}. Не помогло - !sync resend");
                         break;
                     default:
                         Context.Respond("Что делать: all, reset или resend");
