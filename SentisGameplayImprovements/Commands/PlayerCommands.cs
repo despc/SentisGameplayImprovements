@@ -104,7 +104,29 @@ namespace SentisGameplayImprovements
         public static readonly Logger Log = LogManager.GetCurrentClassLogger();
         public static int ConvertCooldownSec = 30;
         public static Dictionary<ulong, DateTime> CooldownConvert = new Dictionary<ulong, DateTime>();
-        
+
+        /// <summary>
+        /// Whether the player has to wait before the next !convert (!convert static, !convert dynamic): says how long
+        /// and returns true; otherwise starts the wait. An admin never waits.
+        /// </summary>
+        public static bool Waits(IMyPlayer player, CommandContext context)
+        {
+            if (PlayerUtils.IsAdmin(player))
+                return false;
+            var now = DateTime.Now;
+            if (CooldownConvert.TryGetValue(player.SteamUserId, out var lastCall))
+            {
+                var nextAvailableDate = lastCall.AddSeconds(ConvertCooldownSec);
+                if (nextAvailableDate > now)
+                {
+                    context.Respond($"try again after {(int)(nextAvailableDate - now).TotalSeconds} sec");
+                    return true;
+                }
+            }
+            CooldownConvert[player.SteamUserId] = now;
+            return false;
+        }
+
         [Command("convert", ".", null)]
         [Permission(MyPromoteLevel.None)]
         public void Convert(string gridName = "")
@@ -112,19 +134,8 @@ namespace SentisGameplayImprovements
             try
             {
                 var player = Context.Player;
-                var playerSteamUserId = Context.Player.SteamUserId;
-                var now = DateTime.Now;
-                if (CooldownConvert.TryGetValue(playerSteamUserId, out DateTime lastCall))
-                {
-                    var nextAvailableDate = lastCall.AddSeconds(ConvertCooldownSec);
-                    if (nextAvailableDate > now)
-                    {
-                        Context.Respond($"try again after {((int)(nextAvailableDate - now).TotalSeconds)} sec", (string) null,
-                            (string) null);
-                        return;
-                    }
-                }
-                CooldownConvert[Context.Player.SteamUserId] = now; 
+                if (Waits(player, Context))
+                    return;
                 if (!PlayerUtils.IsAdmin(player) && !SentisGameplayImprovementsPlugin.Config.AllowPlayersUseConvertCommands)
                 {
                     Context?.Respond("This command only for admins");
@@ -189,19 +200,8 @@ namespace SentisGameplayImprovements
         public void ConvertToStatic(string gridName = "")
         {
             var player = Context.Player;
-            var playerSteamUserId = Context.Player.SteamUserId;
-            var now = DateTime.Now;
-            if (ConvertCommands.CooldownConvert.TryGetValue(playerSteamUserId, out DateTime lastCall))
-            {
-                var nextAvailableDate = lastCall.AddSeconds(ConvertCommands.ConvertCooldownSec);
-                if (nextAvailableDate > now)
-                {
-                    Context.Respond($"try again after {((int)(nextAvailableDate - now).TotalSeconds)} sec", (string) null,
-                        (string) null);
-                    return;
-                }
-            }
-            ConvertCommands.CooldownConvert[Context.Player.SteamUserId] = now; 
+            if (ConvertCommands.Waits(player, Context))
+                return;
             if (!PlayerUtils.IsAdmin(player) && !SentisGameplayImprovementsPlugin.Config.AllowPlayersUseConvertCommands)
             {
                 Context?.Respond("This command only for admins");
@@ -273,19 +273,8 @@ namespace SentisGameplayImprovements
         public void ConvertToDynamic(string gridName = "")
         {
             var player = Context.Player;
-            var playerSteamUserId = Context.Player.SteamUserId;
-            var now = DateTime.Now;
-            if (ConvertCommands.CooldownConvert.TryGetValue(playerSteamUserId, out DateTime lastCall))
-            {
-                var nextAvailableDate = lastCall.AddSeconds(ConvertCommands.ConvertCooldownSec);
-                if (nextAvailableDate > now)
-                {
-                    Context.Respond($"try again after {((int)(nextAvailableDate - now).TotalSeconds)} sec", (string) null,
-                        (string) null);
-                    return;
-                }
-            }
-            ConvertCommands.CooldownConvert[Context.Player.SteamUserId] = now; 
+            if (ConvertCommands.Waits(player, Context))
+                return;
             if (!PlayerUtils.IsAdmin(player) && !SentisGameplayImprovementsPlugin.Config.AllowPlayersUseConvertCommands)
             {
                 Context?.Respond("This command only for admins");
