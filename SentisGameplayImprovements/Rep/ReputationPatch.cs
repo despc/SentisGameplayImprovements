@@ -5,6 +5,7 @@ using System.Reflection;
 using NAPI;
 using NLog;
 using Sandbox.Game.Multiplayer;
+using Sandbox.Game.SessionComponents;
 using Sandbox.Game.World;
 using Sandbox.ModAPI;
 using SentisOptimisations;
@@ -73,7 +74,13 @@ namespace SentisGameplayImprovements
                 {
                     Log.Error(e, "Spawn guard exception");
                 }
-                
+
+                // A faction's bot killed (KillingNpc, the game's since 16.11.2026; it was Killing): as the game, nothing
+                // for a bot of no faction or a spider, and the pirates do not thank for it.
+                var killingNpc = repDamageType == MyReputationDamageType.KillingNpc;
+                if (killingNpc && (attackedFaction == null || attackedFaction.Tag == "SPID"))
+                    return;
+
                 if (attackedFaction == null && playerFaction1 != null)
                 {
                     int reputationDamageDelta = GetReputationDamageDelta(repDamageType, __instance, true);
@@ -107,7 +114,7 @@ namespace SentisGameplayImprovements
                         GetReputationDamageDelta(repDamageType, __instance, playerFaction1 == attackedFaction);
                     __instance.AddFactionPlayerReputation(playerIdentityId, attackedFaction.FactionId,
                         -reputationDamageDelta, ReputationChangeReason.Mod, false);
-                    if (playerFaction1 == null || attackedFaction == playerFaction1)
+                    if (killingNpc || playerFaction1 == null || attackedFaction == playerFaction1)
                         return;
                     __instance.AddFactionPlayerReputation(playerIdentityId, playerFaction1.FactionId,
                         reputationDamageDelta, ReputationChangeReason.Mod, false);
@@ -168,6 +175,10 @@ namespace SentisGameplayImprovements
                     break;
                 case MyReputationDamageType.Killing:
                     reputationDamageDelta = reputationDamageSettings.Killing;
+                    break;
+                case MyReputationDamageType.KillingNpc:
+                    // the game's number for it: the economy's, not the reputation settings'
+                    reputationDamageDelta = MySession.Static.GetComponent<MySessionComponentEconomy>()?.EconomyDefinition?.ReputationLossPerNpcKill ?? 0;
                     break;
                 default:
                     MyLog.Default.Error("Reputation damage type not handled. Check and update.");

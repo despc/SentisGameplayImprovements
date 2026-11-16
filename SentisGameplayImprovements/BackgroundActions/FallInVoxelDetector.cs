@@ -331,7 +331,7 @@ namespace SentisGameplayImprovements.BackgroundActions
             var wasDisabled = new HashSet<IMyEntity>();
             foreach (var entity in ((IEnumerable<IMyEntity>)linked).Reverse().Concat(Enumerable.Reverse(ordered)))
             {
-                if (!(entity.Physics is MyPhysicsBody body) || body.IsWelded) continue;
+                if (!(entity.Physics is MyPhysicsBody body)) continue;
                 if (body.Enabled) body.Enabled = false;
                 else wasDisabled.Add(entity);
             }
@@ -348,7 +348,7 @@ namespace SentisGameplayImprovements.BackgroundActions
             var reinsert = new List<MyPhysicsBody>();
             foreach (var entity in ordered.Concat(linked))
             {
-                if (!(entity.Physics is MyPhysicsBody body) || body.IsWelded || wasDisabled.Contains(entity)) continue;
+                if (!(entity.Physics is MyPhysicsBody body) || wasDisabled.Contains(entity)) continue;
                 body.LinearVelocity = Vector3.Zero;
                 body.AngularVelocity = Vector3.Zero;
                 reinsert.Add(body);
