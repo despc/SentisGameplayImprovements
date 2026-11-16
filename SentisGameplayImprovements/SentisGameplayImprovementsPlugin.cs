@@ -89,6 +89,7 @@ namespace SentisGameplayImprovements
             {
                 _backgroundActionsProcessor.OnUnloading();
                 DelayedProcessor.OnUnloading();
+                StationSafeZones.OnUnloading();
                 Communication.UnregisterHandlers();
                 MyEntities.OnEntityAdd -= EntitiesObserver.MyEntitiesOnOnEntityAdd;
                 MyEntities.OnEntityRemove -= EntitiesObserver.MyEntitiesOnOnEntityRemove;
@@ -107,6 +108,7 @@ namespace SentisGameplayImprovements
                 PvECore.Init();
                 DamagePatch.Init();
                 DelayedProcessor.OnLoaded();
+                StationSafeZones.OnLoaded();
                 InitShieldApi();
                 Communication.RegisterHandlers();
             }
